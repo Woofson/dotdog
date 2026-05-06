@@ -1,4 +1,4 @@
-# Dotmatrix 2.0.3
+# Dot Matrix 2.0.3
 
 > *"We'll have none of that mister! How far did he get? What'd he touch?"* - Dot Matrix, Spaceballs
 
