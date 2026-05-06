@@ -1,4 +1,4 @@
-# Dot Matrix 2.0 - Example Configuration File
+# Dot Matrix 2.0.3 - Example Configuration File
 # Copy this file to your config directory:
 #   Linux/macOS: ~/.config/dotmatrix/config.toml
 #   Windows: %APPDATA%\dotmatrix\config.toml
@@ -46,6 +46,11 @@ git_enabled = true
 #   "gui" = Always use GUI
 #   "tui" = Always use TUI
 preferred_interface = "auto"
+
+# Optional owner details shown in TUI About dialog (`!`)
+# owner_name = "BJ Woofson"
+# owner_website = "www.arf.ac"
+# owner_email = "dm@boop.no"
 
 # ═══════════════════════════════════════════════════════════════
 # GLOBAL EXCLUDE PATTERNS

@@ -17,11 +17,20 @@ Thumbs.db
 
 # Claude Code
 .claude/
+.cursor/
+.cursor-agent/
 conversation.txt
 DESIGN_NOTES.md
 CLAUDE.md
 NEXT.md
+agent-transcripts/
 
 # Backup files
 *.bak
 *.tmp
+
+# AUR and target
+/target/
+/aur/
+/debian/
+ToDo.txt

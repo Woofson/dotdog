@@ -502,6 +502,12 @@ fn handle_projects_keys(app: &mut App, key: KeyCode) {
         KeyCode::Char('s') => {
             app.sync_project();
         }
+        KeyCode::Char('c') => {
+            app.cleanup_missing_files();
+        }
+        KeyCode::Char('C') => {
+            app.acknowledge_missing_files();
+        }
         KeyCode::Char('r') => {
             app.refresh_projects();
             app.message = Some(("Refreshed".to_string(), false));
@@ -533,41 +539,10 @@ fn handle_projects_keys(app: &mut App, key: KeyCode) {
             app.start_set_remote();
         }
         KeyCode::Char('p') => {
-            // Push to remote (project-specific)
-            if let Some(name) = app.selected_project_name() {
-                if let Ok(project_dir) = app.config.project_dir(&name) {
-                    if dmcore::is_git_repo(&project_dir) {
-                        match dmcore::push(&project_dir) {
-                            Ok(msg) => app.message = Some((msg, false)),
-                            Err(e) => app.message = Some((e.to_string(), true)),
-                        }
-                        app.refresh_remote_status();
-                    } else {
-                        app.message = Some(("No git repo for project. Backup first.".to_string(), true));
-                    }
-                }
-            } else {
-                app.message = Some(("No project selected".to_string(), true));
-            }
+            app.push_selected_project();
         }
         KeyCode::Char('P') => {
-            // Pull from remote (project-specific)
-            if let Some(name) = app.selected_project_name() {
-                if let Ok(project_dir) = app.config.project_dir(&name) {
-                    if dmcore::is_git_repo(&project_dir) {
-                        match dmcore::pull(&project_dir) {
-                            Ok(msg) => app.message = Some((msg, false)),
-                            Err(e) => app.message = Some((e.to_string(), true)),
-                        }
-                        app.refresh_remote_status();
-                        app.scan_backup_projects();
-                    } else {
-                        app.message = Some(("No git repo for project. Backup first.".to_string(), true));
-                    }
-                }
-            } else {
-                app.message = Some(("No project selected".to_string(), true));
-            }
+            app.pull_selected_project();
         }
         KeyCode::Char('v') => {
             app.open_viewer();
@@ -945,7 +920,7 @@ fn ui(f: &mut Frame, app: &mut App) {
 
     // About overlay
     if app.show_about {
-        render_about(f);
+        render_about(f, app);
     }
 
     // Project creation overlay
@@ -1063,6 +1038,7 @@ fn render_projects(f: &mut Frame, app: &mut App, area: Rect) {
                 ListItem::new(Line::from(spans))
             }
             ProjectViewItem::File {
+                project_name,
                 path,
                 status,
                 size,
@@ -1070,10 +1046,13 @@ fn render_projects(f: &mut Frame, app: &mut App, area: Rect) {
                 encrypted,
                 ..
             } => {
+                let acknowledged_missing = matches!(status, FileStatus::Missing)
+                    && app.is_missing_acknowledged(project_name, path);
                 let (icon, color) = match status {
                     FileStatus::Synced => ("✓", Color::Green),
                     FileStatus::Drifted => ("⚠", Color::Yellow),
                     FileStatus::New => ("+", Color::Cyan),
+                    FileStatus::Missing if acknowledged_missing => ("~", Color::DarkGray),
                     FileStatus::Missing => ("✗", Color::Red),
                     FileStatus::Error => ("!", Color::Red),
                 };
@@ -1256,7 +1235,8 @@ fn render_restore_projects(f: &mut Frame, app: &mut App, area: Rect) {
         .backup_projects
         .iter()
         .map(|project| {
-            let commits_str = format!("{} backups", project.commit_count);
+            let commits_str = format!("git:{}", project.commit_count);
+            let archive_str = format!("  arc:{}", project.archive_count);
             let last_backup_str = project
                 .last_backup
                 .as_ref()
@@ -1272,6 +1252,7 @@ fn render_restore_projects(f: &mut Frame, app: &mut App, area: Rect) {
                     format!("{:>12}", commits_str),
                     Style::default().fg(Color::Yellow),
                 ),
+                Span::styled(archive_str, Style::default().fg(Color::Magenta)),
                 Span::styled(last_backup_str, Style::default().fg(Color::DarkGray)),
             ]);
 
@@ -1454,7 +1435,7 @@ fn render_status_bar(f: &mut Frame, app: &mut App, area: Rect) {
         (message.clone(), Style::default().fg(color))
     } else {
         let help = match app.mode {
-            Mode::Projects => "↑↓:nav  Enter:expand  a/A:incr  b:archive  S:save  r:refresh  g:git  p:push  P:pull  ?:help",
+            Mode::Projects => "↑↓:nav  Enter:expand  a/A:incr  b:archive  c:clean  C:ack-missing  S:save  r:refresh  g:git  p:push  P:pull  ?:help",
             Mode::Add => "↑↓:select  Enter:open/add  h:parent  ~:home  ?:help  q:quit",
             Mode::Restore => match app.restore_view {
                 RestoreView::Projects => "↑↓:select  Enter:view backups  r:refresh  ?:help  q:quit",
@@ -1666,6 +1647,8 @@ fn render_help(f: &mut Frame, app: &App) {
  G          Set git remote URL (prompt)
  p          Push to remote
  P          Pull from remote
+c          Clean missing source files (remove red ✗ entries)
+C          Acknowledge missing files (keep tracked, mute to ~)
 
  ADD FILES TAB
  ───────────────────────────
@@ -1740,6 +1723,11 @@ fn render_help(f: &mut Frame, app: &App) {
  CHG   Local file differs
  OK    Local matches backup
 
+BACKUP TYPE COUNTS
+───────────────────────────
+git:N   Incremental git backups in project repo
+arc:N   Archive backups in shared backups directory
+
  CLI
  ───────────────────────────
  Archives: dmxcli backup PROJECT --archive [--format tar-gz|zip|7z]
@@ -1760,8 +1748,19 @@ fn render_help(f: &mut Frame, app: &App) {
     f.render_widget(help, area);
 }
 
-fn render_about(f: &mut Frame) {
+fn render_about(f: &mut Frame, app: &App) {
     let area = centered_rect(50, 40, f.area());
+    let owner_name = app.config.owner_name.as_deref().unwrap_or("BJ Woofson");
+    let owner_website = app
+        .config
+        .owner_website
+        .as_deref()
+        .unwrap_or("www.arf.ac");
+    let owner_email = app
+        .config
+        .owner_email
+        .as_deref()
+        .unwrap_or("dm@boop.no");
 
     let about_text = format!(
         r#"
@@ -1784,13 +1783,18 @@ fn render_about(f: &mut Frame) {
 
     Project compositor with git versioning
 
-    Author: Woofson
+    Owner: {}
+    Website: {}
+    Email: {}
     License: MIT
-    GitHub: https://github.com/Woofson/dotmatrix
+    GitHub: https://github.com/Woofson/
 
              Press any key to close
 "#,
-        env!("CARGO_PKG_VERSION")
+        env!("CARGO_PKG_VERSION"),
+        owner_name,
+        owner_website,
+        owner_email
     );
 
     let about = Paragraph::new(about_text)

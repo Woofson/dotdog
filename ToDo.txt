@@ -1,5 +1,0 @@
-More indicators that Dot Matrix is working, for example when pushing/pulling to git.
-
-Sketch up a workflow, add files -> check files -> determine backup -> backup -> sync/archive.
-
-Better indication in the Restore tab what type of backup it is.

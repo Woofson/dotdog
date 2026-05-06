@@ -104,6 +104,7 @@ pub struct BackupProject {
     pub path: PathBuf,
     pub commit_count: usize,
     pub last_backup: Option<String>, // Date of most recent commit
+    pub archive_count: usize,
 }
 
 /// Purpose of the password prompt
@@ -324,6 +325,7 @@ pub struct App {
 
     // Restore confirmation state
     pub restore_confirm: RestoreConfirmState,
+    pub acknowledged_missing: HashSet<String>,
 }
 
 /// File entry for browsing
@@ -408,6 +410,7 @@ impl App {
             syntax_set: SyntaxSet::load_defaults_newlines(),
             theme_set: ThemeSet::load_defaults(),
             restore_confirm: RestoreConfirmState::default(),
+            acknowledged_missing: HashSet::new(),
         };
 
         app.refresh_projects();
@@ -451,10 +454,17 @@ impl App {
                             path,
                             commit_count,
                             last_backup,
+                            archive_count: 0,
                         });
                     }
                 }
             }
+        }
+
+        for project in &mut self.backup_projects {
+            project.archive_count = list_archives(&self.config, &project.name)
+                .map(|archives| archives.len())
+                .unwrap_or(0);
         }
 
         // Sort by name
@@ -1303,6 +1313,155 @@ impl App {
         } else {
             self.message = Some(("Nothing to sync".to_string(), false));
         }
+    }
+
+    /// Remove missing source files from the selected project.
+    pub fn cleanup_missing_files(&mut self) {
+        let project_name = match self.selected_project_name() {
+            Some(name) => name,
+            None => {
+                self.message = Some(("No project selected".to_string(), true));
+                return;
+            }
+        };
+
+        let mut removed = 0usize;
+        if let Some(project) = self.manifest.get_project_mut(&project_name) {
+            let before = project.files.len();
+            project.files.retain(|tracked| tracked.absolute_path().exists());
+            removed = before.saturating_sub(project.files.len());
+        }
+
+        if removed == 0 {
+            self.message = Some(("No missing files to clean up".to_string(), false));
+            return;
+        }
+
+        self.manifest_dirty = true;
+        self.refresh_projects();
+        self.message = Some((
+            format!("Removed {} missing file(s) from {}", removed, project_name),
+            false,
+        ));
+    }
+
+    /// Acknowledge missing source files without removing them from manifest.
+    pub fn acknowledge_missing_files(&mut self) {
+        let project_name = match self.selected_project_name() {
+            Some(name) => name,
+            None => {
+                self.message = Some(("No project selected".to_string(), true));
+                return;
+            }
+        };
+
+        let mut acknowledged = 0usize;
+        if let Some(project) = self.manifest.get_project(&project_name) {
+            for tracked in &project.files {
+                let abs = tracked.absolute_path();
+                if !abs.exists() {
+                    let key = format!("{}:{}", project_name, tracked.path);
+                    if self.acknowledged_missing.insert(key) {
+                        acknowledged += 1;
+                    }
+                }
+            }
+        }
+
+        if acknowledged == 0 {
+            self.message = Some(("No new missing files to acknowledge".to_string(), false));
+            return;
+        }
+
+        self.message = Some((
+            format!("Acknowledged {} missing file(s) in {}", acknowledged, project_name),
+            false,
+        ));
+    }
+
+    pub fn is_missing_acknowledged(&self, project_name: &str, path: &str) -> bool {
+        self.acknowledged_missing
+            .contains(&format!("{}:{}", project_name, path))
+    }
+
+    /// Push selected project to its remote in a background task.
+    pub fn push_selected_project(&mut self) {
+        let project_name = match self.selected_project_name() {
+            Some(name) => name,
+            None => {
+                self.message = Some(("No project selected".to_string(), true));
+                return;
+            }
+        };
+        let project_dir = match self.config.project_dir(&project_name) {
+            Ok(dir) => dir,
+            Err(e) => {
+                self.message = Some((e.to_string(), true));
+                return;
+            }
+        };
+        if !dmcore::is_git_repo(&project_dir) {
+            self.message = Some(("No git repo for project. Backup first.".to_string(), true));
+            return;
+        }
+
+        let (tx, rx) = mpsc::channel();
+        self.op_receiver = Some(rx);
+        self.busy = true;
+        self.busy_message = format!("Pushing {}...", project_name);
+        std::thread::spawn(move || {
+            let op_result = match dmcore::push(&project_dir) {
+                Ok(msg) => OpResult {
+                    success: true,
+                    message: msg,
+                },
+                Err(e) => OpResult {
+                    success: false,
+                    message: e.to_string(),
+                },
+            };
+            let _ = tx.send(op_result);
+        });
+    }
+
+    /// Pull selected project from its remote in a background task.
+    pub fn pull_selected_project(&mut self) {
+        let project_name = match self.selected_project_name() {
+            Some(name) => name,
+            None => {
+                self.message = Some(("No project selected".to_string(), true));
+                return;
+            }
+        };
+        let project_dir = match self.config.project_dir(&project_name) {
+            Ok(dir) => dir,
+            Err(e) => {
+                self.message = Some((e.to_string(), true));
+                return;
+            }
+        };
+        if !dmcore::is_git_repo(&project_dir) {
+            self.message = Some(("No git repo for project. Backup first.".to_string(), true));
+            return;
+        }
+
+        let (tx, rx) = mpsc::channel();
+        self.op_receiver = Some(rx);
+        self.busy = true;
+        self.busy_message = format!("Pulling {}...", project_name);
+        std::thread::spawn(move || {
+            let op_result = match dmcore::pull(&project_dir) {
+                Ok(msg) => OpResult {
+                    success: true,
+                    message: msg,
+                },
+                Err(e) => OpResult {
+                    success: false,
+                    message: e.to_string(),
+                },
+            };
+            let _ = tx.send(op_result);
+        });
     }
 
     /// Select a commit and load its files for restore

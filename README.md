@@ -1,4 +1,4 @@
-# Dotmatrix 2.0
+# Dotmatrix 2.0.3
 
 > *"We'll have none of that mister! How far did he get? What'd he touch?"* - Dot Matrix, Spaceballs
 
@@ -138,6 +138,8 @@ files = [
 | `a` | Backup with commit message |
 | `A` | Silent backup (no popup) |
 | `s` | Sync project |
+| `c` | Clean up missing source files (remove red `✗` entries) |
+| `C` | Acknowledge missing files (keep tracked, mute to `~`) |
 | `n` | New project |
 | `D` | Delete project |
 | `r` | Refresh |
@@ -232,6 +234,12 @@ dmxcli store [project]
 | `NEW` | File missing locally |
 | `CHG` | Local file differs |
 | `OK` | Matches backup |
+
+### Restore Backup Types
+| Symbol | Meaning |
+|--------|---------|
+| `git:N` | Incremental git backups in project repo |
+| `arc:N` | Archive backups in shared backups directory |
 
 ## File Viewer
 

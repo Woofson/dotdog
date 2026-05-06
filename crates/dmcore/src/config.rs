@@ -44,6 +44,18 @@ pub struct Config {
     /// Preferred interface when running without arguments
     #[serde(default)]
     pub preferred_interface: PreferredInterface,
+
+    /// Owner name shown in About dialog (optional)
+    #[serde(default)]
+    pub owner_name: Option<String>,
+
+    /// Owner website shown in About dialog (optional)
+    #[serde(default)]
+    pub owner_website: Option<String>,
+
+    /// Owner email shown in About dialog (optional)
+    #[serde(default)]
+    pub owner_email: Option<String>,
 }
 
 fn default_true() -> bool {
@@ -69,6 +81,9 @@ impl Default for Config {
             git_enabled: true,
             exclude: default_excludes(),
             preferred_interface: PreferredInterface::default(),
+            owner_name: None,
+            owner_website: None,
+            owner_email: None,
         }
     }
 }

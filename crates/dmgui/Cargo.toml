@@ -3,7 +3,7 @@
 
 [package]
 name = "dmgui"
-version = "2.0.2"
+version = "2.0.3"
 edition = "2021"
 authors = ["Woofson <https://github.com/Woofson>"]
 description = "GUI for dotmatrix - project compositor with git versioning"

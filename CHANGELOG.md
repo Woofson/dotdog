@@ -5,6 +5,18 @@ All notable changes to dotmatrix will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.3] - 2026-05-06
+
+### Added
+- TUI Projects tab now supports `c` to clean up missing source files from a project manifest.
+- TUI Projects tab now supports `C` to acknowledge missing files without removing them.
+- Restore project list now shows backup type counts with `git:N` (incremental commits) and `arc:N` (archives).
+- Config now supports optional About profile fields: `owner_name`, `owner_website`, and `owner_email`.
+
+### Changed
+- Push/pull actions in TUI now run as background operations with busy status feedback.
+- Help and status legends were expanded for cleanup and restore backup type indicators.
+
 ## [2.0.0-rc.1] - 2026-03-26
 
 ### Major Changes - v2 Architecture
