@@ -262,7 +262,8 @@ manifest + store + git + backup
 - `dmcore` - Core library (all logic)
 - `dmtui` - TUI binary (`dmxtui`)
 - `dmcli` - CLI binary (`dmxcli`)
-- `dmgui` - GUI binary (`dmxgui`)
+
+The previous egui GUI (`crates/dmgui` / `dmxgui`) is **not built** by the root workspace today so CLI and TUI can stay the focus. Revive later with `cargo build --manifest-path crates/dmgui/Cargo.toml --release` if needed.
 
 ## Development
 

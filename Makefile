@@ -1,6 +1,6 @@
 # Makefile for Dot Matrix
 
-.PHONY: all build release clean install uninstall install-man run help test windows_release linux_release
+.PHONY: all build release clean install uninstall install-man run run-tui help test windows_release linux_release
 
 # Default target
 all: release
@@ -9,7 +9,7 @@ all: release
 build:
 	@echo "Building Dot Matrix (debug mode)..."
 	@cargo build
-	@echo "Debug build complete: ./target/debug/dmxcli, dmxtui, dmxgui"
+	@echo "Debug build complete: ./target/debug/dmxcli, dmxtui"
 
 # Build in release mode (optimized)
 release:
@@ -18,7 +18,6 @@ release:
 	@echo "Release build complete:"
 	@echo "    ./target/release/dmxcli  (CLI)"
 	@echo "    ./target/release/dmxtui  (TUI)"
-	@echo "    ./target/release/dmxgui  (GUI)"
 
 # Clean build artifacts
 clean:
@@ -31,8 +30,7 @@ install: release
 	@echo "Installing Dot Matrix..."
 	@cargo install --path crates/dmcli
 	@cargo install --path crates/dmtui
-	@cargo install --path crates/dmgui
-	@echo "Installed! You can now run 'dmxcli', 'dmxtui', or 'dmxgui'"
+	@echo "Installed! Run 'dmxcli' or 'dmxtui'"
 	@echo "Run 'sudo make install-man' to install the man page"
 
 # Install man page (requires sudo)
@@ -47,7 +45,6 @@ uninstall:
 	@echo "Uninstalling Dot Matrix..."
 	-@cargo uninstall dmcli 2>/dev/null || true
 	-@cargo uninstall dmtui 2>/dev/null || true
-	-@cargo uninstall dmgui 2>/dev/null || true
 	@echo "Uninstalled!"
 
 # Run CLI in development mode
@@ -57,10 +54,6 @@ run:
 # Run TUI in development mode
 run-tui:
 	@cargo run -p dmtui
-
-# Run GUI in development mode
-run-gui:
-	@cargo run -p dmgui
 
 # Run tests
 test:
@@ -95,7 +88,6 @@ windows_release: release
 	@mkdir -p release/dotmatrix-$(VERSION)-windows-x86_64
 	@cp target/release/dmxcli.exe release/dotmatrix-$(VERSION)-windows-x86_64/
 	@cp target/release/dmxtui.exe release/dotmatrix-$(VERSION)-windows-x86_64/
-	@cp target/release/dmxgui.exe release/dotmatrix-$(VERSION)-windows-x86_64/
 	@cp README.md CHANGELOG.md LICENSE release/dotmatrix-$(VERSION)-windows-x86_64/
 	@cp example-config.toml example-manifest.toml release/dotmatrix-$(VERSION)-windows-x86_64/
 	@cd release && zip -r dotmatrix-$(VERSION)-windows-x86_64.zip dotmatrix-$(VERSION)-windows-x86_64/
@@ -111,7 +103,7 @@ windows_release: release
 	@echo "  release/dotmatrix-$(VERSION)-windows-x86_64.zip"
 	@echo "  release/dotmatrix-$(VERSION)-setup-windows-x86_64.exe"
 	@echo ""
-	@echo "  Includes: dmxcli.exe (CLI) + dmxtui.exe (TUI) + dmxgui.exe (GUI)"
+	@echo "  Includes: dmxcli.exe (CLI) + dmxtui.exe (TUI)"
 
 # Build Linux release tarball
 linux_release: release
@@ -126,7 +118,6 @@ linux_release: release
 	@mkdir -p release/dotmatrix-$(VERSION)-linux-x86_64
 	@cp target/release/dmxcli release/dotmatrix-$(VERSION)-linux-x86_64/
 	@cp target/release/dmxtui release/dotmatrix-$(VERSION)-linux-x86_64/
-	@cp target/release/dmxgui release/dotmatrix-$(VERSION)-linux-x86_64/
 	@cp README.md CHANGELOG.md LICENSE release/dotmatrix-$(VERSION)-linux-x86_64/
 	@cp example-config.toml example-manifest.toml release/dotmatrix-$(VERSION)-linux-x86_64/
 	@cp dmxcli.1 release/dotmatrix-$(VERSION)-linux-x86_64/
@@ -139,7 +130,7 @@ linux_release: release
 	@echo ""
 	@echo "  release/dotmatrix-$(VERSION)-linux-x86_64.tar.gz"
 	@echo ""
-	@echo "  Includes: dmxcli + dmxtui + dmxgui + man page + desktop file + icon"
+	@echo "  Includes: dmxcli + dmxtui + man page + desktop file + icon"
 
 # Show help
 help:
@@ -153,7 +144,6 @@ help:
 	@echo "  make uninstall       - Remove from system"
 	@echo "  make run ARGS=''     - Run CLI with arguments"
 	@echo "  make run-tui         - Run TUI"
-	@echo "  make run-gui         - Run GUI"
 	@echo "  make test            - Run tests"
 	@echo "  make check           - Check code without building"
 	@echo "  make fmt             - Format code with rustfmt"
@@ -165,7 +155,6 @@ help:
 	@echo "Binaries:"
 	@echo "  dmxcli  - Command-line interface"
 	@echo "  dmxtui  - Terminal user interface (ratatui)"
-	@echo "  dmxgui  - Graphical user interface (egui)"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make                   # Build release version"

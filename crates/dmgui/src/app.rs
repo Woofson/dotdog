@@ -4,7 +4,7 @@
 
 use age::secrecy::SecretString;
 use dmcore::{
-    backup_project_incremental_encrypted_with_message, contract_path, expand_path,
+    backup_archive, backup_project_incremental_encrypted_with_message, contract_path, expand_path,
     get_remote_status, hash_file, init_project_repo, project_needs_password,
     recent_commits, retrieve_file_from, retrieve_file_from_encrypted, scan_project,
     Config, Index, Manifest, ProjectSummary, RemoteStatus, TrackMode,
@@ -740,6 +740,57 @@ impl GuiApp {
         self.backup_project_with_password(project_name, project);
     }
 
+    /// Archive snapshot (writes under shared backups dir; format from config)
+    pub fn backup_project_archive(&mut self) {
+        let project_name = match self.selected_project_name() {
+            Some(name) => name,
+            None => {
+                self.message = Some(("No project selected".to_string(), true));
+                return;
+            }
+        };
+
+        let project = match self.manifest.get_project(&project_name) {
+            Some(p) => p.clone(),
+            None => {
+                self.message = Some(("Project not found".to_string(), true));
+                return;
+            }
+        };
+
+        let config = self.config.clone();
+        let name = project_name.clone();
+        let format = config.default_archive_format;
+
+        let (tx, rx) = mpsc::channel();
+        self.op_receiver = Some(rx);
+        self.busy = true;
+        self.busy_message =
+            format!("Creating .{} archive for {}...", format.extension(), project_name);
+
+        std::thread::spawn(move || {
+            let result = backup_archive(&config, &name, &project, format);
+
+            let op_result = match result {
+                Ok(path) => OpResult {
+                    success: true,
+                    message: format!(
+                        "Archive created: {}",
+                        path.file_name()
+                            .map(|n| n.to_string_lossy().to_string())
+                            .unwrap_or_else(|| path.display().to_string())
+                    ),
+                },
+                Err(e) => OpResult {
+                    success: false,
+                    message: e.to_string(),
+                },
+            };
+
+            let _ = tx.send(op_result);
+        });
+    }
+
     pub fn backup_project_with_message(&mut self) {
         let project_name = match self.selected_project_name() {
             Some(name) => name,
@@ -916,7 +967,6 @@ impl GuiApp {
         }
 
         self.message = Some(("Git status refreshed".to_string(), false));
-        self.refresh_projects();
     }
 
     pub fn poll_operation(&mut self) {
@@ -1313,6 +1363,7 @@ impl GuiApp {
                 }
                 self.message = Some((format!("Remote set to {}", remote_url), false));
                 self.refresh_remote_status();
+                self.refresh_projects();
             } else {
                 self.message = Some(("Project has no git repository yet".to_string(), true));
             }

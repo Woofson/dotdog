@@ -16,7 +16,7 @@ use std::io::BufRead;
 use std::path::{Path, PathBuf};
 
 #[derive(Parser)]
-#[command(name = "dotmatrix")]
+#[command(name = "dmxcli")]
 #[command(author, version, about = "Project compositor with git versioning")]
 struct Cli {
     #[command(subcommand)]
@@ -306,14 +306,17 @@ fn cmd_init(json: bool) -> anyhow::Result<()> {
         });
         println!("{}", serde_json::to_string_pretty(&output)?);
     } else {
-        println!("dotmatrix 2.0.0 - project compositor with git versioning");
+        println!(
+            "Dot Matrix {} — project compositor with git versioning",
+            env!("CARGO_PKG_VERSION")
+        );
         println!();
         println!("Config:   {}", Config::config_path()?.display());
         println!("Manifest: {}", Manifest::manifest_path()?.display());
         println!("Index:    {}", Index::index_path()?.display());
         println!("Data:     {}", data_dir.display());
         println!();
-        println!("Ready. Create a project with: dotmatrix new <name>");
+        println!("Ready. Create a project with: dmxcli new <name>");
     }
 
     Ok(())

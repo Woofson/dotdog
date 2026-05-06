@@ -11,8 +11,10 @@ use egui::{self, RichText};
 /// Render the project tree
 pub fn render_project_tree(app: &mut GuiApp, ui: &mut egui::Ui) {
     ui.label(
-        RichText::new("Your Projects - Press Enter to expand/collapse, a to backup")
-            .color(Colors::DARK_GRAY),
+        RichText::new(
+            "Your Projects — Enter: expand/collapse  a: backup (message)  Shift+a: silent  b: archive",
+        )
+        .color(Colors::DARK_GRAY),
     );
     ui.add_space(5.0);
 
@@ -45,6 +47,7 @@ pub fn render_project_tree(app: &mut GuiApp, ui: &mut egui::Ui) {
     let mut action_push = false;
     let mut action_pull = false;
     let mut action_refresh_git = false;
+    let mut action_archive_backup = false;
 
     egui::ScrollArea::vertical()
         .id_salt("project_tree_scroll")
@@ -168,6 +171,10 @@ pub fn render_project_tree(app: &mut GuiApp, ui: &mut egui::Ui) {
                             }
                             if ui.button("Backup with message").clicked() {
                                 action_backup_msg = true;
+                                ui.close_menu();
+                            }
+                            if ui.button("Archive backup (.zip / .tar.gz / …)").clicked() {
+                                action_archive_backup = true;
                                 ui.close_menu();
                             }
                             if ui.button("Sync (mark all synced)").clicked() {
@@ -388,5 +395,9 @@ pub fn render_project_tree(app: &mut GuiApp, ui: &mut egui::Ui) {
     }
     if action_refresh_git {
         app.refresh_remote_status();
+        app.refresh_projects();
+    }
+    if action_archive_backup {
+        app.backup_project_archive();
     }
 }

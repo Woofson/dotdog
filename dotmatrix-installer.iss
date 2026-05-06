@@ -6,8 +6,8 @@
 #define AppVersion "0.4.2"
 #define AppPublisher "Woofson"
 #define AppURL "https://github.com/Woofson/dotmatrix"
-#define AppExeName "dotmatrix.exe"
-#define AppGuiExeName "dmgui.exe"
+#define AppCliExeName "dmxcli.exe"
+#define AppTuiExeName "dmxtui.exe"
 
 [Setup]
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
@@ -23,7 +23,6 @@ AppUpdatesURL={#AppURL}/releases
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 
-; Enable Start Menu folder for GUI shortcut
 DisableProgramGroupPage=no
 
 ; Output
@@ -65,13 +64,11 @@ Name: "desktopicon"; Description: "Create desktop shortcut"; GroupDescription: "
 
 
 [Files]
-; Main executable (CLI/TUI/GUI with console)
-Source: "target\release\{#AppExeName}"; \
+Source: "target\release\{#AppCliExeName}"; \
   DestDir: "{app}"; \
   Flags: ignoreversion
 
-; GUI-only executable (no console window)
-Source: "target\release\{#AppGuiExeName}"; \
+Source: "target\release\{#AppTuiExeName}"; \
   DestDir: "{app}"; \
   Flags: ignoreversion
 
@@ -100,24 +97,21 @@ Source: "LICENSE"; \
 
 
 [Icons]
-; Start Menu shortcut for GUI (uses dmgui.exe - no console window)
-Name: "{group}\Dot Matrix"; \
-  Filename: "{app}\{#AppGuiExeName}"; \
+Name: "{group}\Dot Matrix (TUI)"; \
+  Filename: "{app}\{#AppTuiExeName}"; \
   IconFilename: "{app}\dotmatrix-icon.ico"; \
-  Comment: "Dotfile backup and versioning"
+  Comment: "Terminal UI"
 
-; Desktop shortcut (optional, uses dmgui.exe)
-Name: "{commondesktop}\Dot Matrix"; \
-  Filename: "{app}\{#AppGuiExeName}"; \
+Name: "{commondesktop}\Dot Matrix (TUI)"; \
+  Filename: "{app}\{#AppTuiExeName}"; \
   IconFilename: "{app}\dotmatrix-icon.ico"; \
   Tasks: desktopicon
 
-; Start Menu shortcut for command line
-Name: "{group}\Dot Matrix (Command Line)"; \
+Name: "{group}\Dot Matrix CLI (help)"; \
   Filename: "{cmd}"; \
-  Parameters: "/k ""{app}\{#AppExeName}"" --help"; \
+  Parameters: "/k ""{app}\{#AppCliExeName}"" --help"; \
   IconFilename: "{app}\dotmatrix-icon.ico"; \
-  Comment: "Open terminal with dotmatrix"
+  Comment: "Open CLI help in Command Prompt"
 
 
 [Registry]
@@ -201,4 +195,4 @@ end;
 
 [Messages]
 ; Customise the finish page to remind users to restart their terminal
-FinishedLabel=Setup has finished installing [name] on your computer.%n%nIf you added {#AppName} to your PATH, please restart any open terminals or Command Prompt windows for the change to take effect.%n%nRun [bold]dotmatrix --help[/bold] to get started.
+FinishedLabel=Setup has finished installing [name] on your computer.%n%nIf you added {#AppName} to your PATH, restart open terminals.%n%nRun [bold]dmxcli --help[/bold] or launch [bold]dmxtui.exe[/bold] from Start Menu shortcuts.

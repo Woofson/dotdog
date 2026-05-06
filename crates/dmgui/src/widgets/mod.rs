@@ -119,7 +119,7 @@ pub fn render_status_bar(app: &mut GuiApp, ui: &mut egui::Ui) {
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             match app.mode {
                 Mode::Projects => {
-                    ui.label(RichText::new("a: backup | A: silent backup | s: sync | n: new project | ?: help").color(Colors::DARK_GRAY).small());
+                    ui.label(RichText::new("a: incr backup | Shift+a: silent | b: archive | s: sync | r: refresh | g: git | F1: help").color(Colors::DARK_GRAY).small());
                 }
                 Mode::Add => {
                     let target = app.target_project.as_deref().unwrap_or("none");

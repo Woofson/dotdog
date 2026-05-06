@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
 Name=Dot Matrix
-Comment=Project compositor with git versioning
-Exec=dmxgui
+Comment=Project compositor — terminal UI (CLI+TUI focus; no GUI binary in default build)
+Exec=dmxtui
 Icon=dotmatrix-icon
-Terminal=false
+Terminal=true
 Categories=Utility;System;
 Keywords=dotfiles;backup;config;versioning;git;
 StartupWMClass=ac.arf.dev.dotmatrix

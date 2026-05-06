@@ -98,10 +98,17 @@ fn run_app<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut A
                     KeyCode::Up | KeyCode::Char('k') => {
                         app.help_scroll = app.help_scroll.saturating_sub(1);
                     }
-                    _ => {
+                    KeyCode::PageDown => {
+                        app.help_scroll = app.help_scroll.saturating_add(8);
+                    }
+                    KeyCode::PageUp => {
+                        app.help_scroll = app.help_scroll.saturating_sub(8);
+                    }
+                    KeyCode::Esc | KeyCode::Char('?') => {
                         app.show_help = false;
                         app.help_scroll = 0;
                     }
+                    _ => {}
                 }
                 continue;
             }
@@ -212,6 +219,16 @@ fn run_app<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut A
                     }
                     KeyCode::Enter => {
                         app.confirm_recursive_add();
+                    }
+                    KeyCode::PageDown => {
+                        for _ in 0..8 {
+                            app.preview_next();
+                        }
+                    }
+                    KeyCode::PageUp => {
+                        for _ in 0..8 {
+                            app.preview_previous();
+                        }
                     }
                     KeyCode::Down | KeyCode::Char('j') => {
                         app.preview_next();
@@ -373,7 +390,10 @@ fn run_app<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut A
             // Global keys
             match key.code {
                 KeyCode::Char('q') => app.should_quit = true,
-                KeyCode::Char('?') => app.show_help = true,
+                KeyCode::Char('?') => {
+                    app.help_scroll = 0;
+                    app.show_help = true;
+                }
                 KeyCode::Char('!') => app.show_about = true,
                 KeyCode::Tab => {
                     let next = (app.mode.index() + 1) % 3;
@@ -468,12 +488,16 @@ fn handle_projects_keys(app: &mut App, key: KeyCode) {
             app.collapse_selected_project();
         }
         KeyCode::Char('a') => {
-            // Backup with custom commit message popup
+            // Incremental backup with custom commit message popup
             app.backup_project_with_message();
         }
         KeyCode::Char('A') => {
-            // Silent backup (no popup)
+            // Silent incremental backup (no popup)
             app.backup_project();
+        }
+        KeyCode::Char('b') => {
+            // Archive backup (zip / tar.gz / etc. — see config default_archive_format)
+            app.backup_project_archive();
         }
         KeyCode::Char('s') => {
             app.sync_project();
@@ -1215,7 +1239,9 @@ fn render_restore(f: &mut Frame, app: &mut App, area: Rect) {
 
 fn render_restore_projects(f: &mut Frame, app: &mut App, area: Rect) {
     if app.backup_projects.is_empty() {
-        let msg = Paragraph::new("No backups found.\n\nCreate backups in the Projects tab with 'b'.")
+        let msg = Paragraph::new(
+            "No backups found.\n\nCreate incremental backups in the Projects tab with a/A, or an archive with b.",
+        )
             .style(Style::default().fg(Color::DarkGray))
             .block(
                 Block::default()
@@ -1428,7 +1454,7 @@ fn render_status_bar(f: &mut Frame, app: &mut App, area: Rect) {
         (message.clone(), Style::default().fg(color))
     } else {
         let help = match app.mode {
-            Mode::Projects => "↑↓:nav  Enter:expand  b:backup  S:save  g:git  p:push  P:pull  ?:help",
+            Mode::Projects => "↑↓:nav  Enter:expand  a/A:incr  b:archive  S:save  r:refresh  g:git  p:push  P:pull  ?:help",
             Mode::Add => "↑↓:select  Enter:open/add  h:parent  ~:home  ?:help  q:quit",
             Mode::Restore => match app.restore_view {
                 RestoreView::Projects => "↑↓:select  Enter:view backups  r:refresh  ?:help  q:quit",
@@ -1594,7 +1620,7 @@ fn render_viewer(f: &mut Frame, app: &App) {
     f.render_widget(footer_para, footer_area);
 }
 
-fn render_help(f: &mut Frame, _app: &App) {
+fn render_help(f: &mut Frame, app: &App) {
     let area = centered_rect(60, 70, f.area());
 
     let help_text = r#"
@@ -1607,10 +1633,10 @@ fn render_help(f: &mut Frame, _app: &App) {
  GLOBAL KEYS
  ───────────────────────────
  Tab/1-3    Switch tabs
- ?          Show/hide help
- A          About
- v          View file content
+ ?          Show this help (↑/↓/PgUp/PgDn scroll, Esc closes)
+ !          About
  q          Quit
+ v          View file (Projects file row / Add file / Restore › Files only)
 
  FILE VIEWER
  ───────────────────────────
@@ -1623,21 +1649,21 @@ fn render_help(f: &mut Frame, _app: &App) {
 
  PROJECTS TAB
  ───────────────────────────
- Enter/→/l  Expand/collapse
+ Enter/→/l  Expand/collapse project
  ←/h        Collapse project
- m          Toggle track mode
- x          Toggle encryption
- X          Encrypt project
- b          Backup (incremental)
- B          Backup w/ message
- a          Archive backup
- s          Sync project
- S          Save now (live)
+ m          Toggle track mode (Git → Backup → Both)
+ x          Toggle encryption on selected file
+ X          Toggle encryption on all files in project
+ a          Incremental backup (prompt for commit message)
+ A          Silent incremental backup
+ b          Archive backup (format: config default_archive_format)
+ s          Sync project (mark all files synced in index)
+ S          Save manifest + index now; reload UI state
  n          New project
  D          Delete project
- r          Refresh
- g          Refresh git status
- G          Set git remote
+ r          Rescan projects / file statuses
+ g          Refresh git remote status (↑/↓/ahead counts)
+ G          Set git remote URL (prompt)
  p          Push to remote
  P          Pull from remote
 
@@ -1647,18 +1673,18 @@ fn render_help(f: &mut Frame, _app: &App) {
  ←/h/Bksp   Parent directory
  a          Add selected file
  u          Untrack file
- R          Recursive add
+ R          Recursive add (preview popup)
  p          Cycle target project
- t          Cycle track mode
+ t          Cycle default track mode
  n          New project
- ~          Go to home
+ ~          Go to home directory
 
  RECURSIVE ADD POPUP
  ───────────────────────────
  Space      Toggle selection
  a          Toggle all
- t          Cycle track mode
- T          Set all track mode
+ t          Cycle track mode (selected row)
+ T          Set track mode for all
  Enter      Add selected files
  Esc/q      Cancel
 
@@ -1678,50 +1704,55 @@ fn render_help(f: &mut Frame, _app: &App) {
  Space      Toggle selection
  a          Select all
  d          Deselect all
- Enter/R    Restore (confirm)
- v          View file content
+ Enter/R    Choose restore destination (confirmation)
+ v          View local file (restore path), if present
  ←/h/Bksp   Back to commits
- r          Refresh
+ r          Reload file list
 
  RESTORE CONFIRMATION
  ───────────────────────────
  ↑/k ↓/j    Navigate files
- b          View backup file
+ b          View backup contents
  l          View local file
  d          View diff
- Y/Enter    Confirm restore
- N/Esc      Cancel
- O          Original location
- C          Custom location
+ Y/y/Enter  Confirm restore
+ N/n/Esc    Cancel
+ O          Restore to original path
+ C          Custom path (prompt)
  Tab        Toggle destination
 
  TRACK MODES
  ───────────────────────────
- [G] Git     Version control
- [B] Backup  Incremental
- [+] Both    Git + Backup
- [E] Encrypted file
+ [G] Git     Track in git (text / diff-friendly)
+ [B] Backup  Content-addressed store only
+ [+] Both    Git + incremental store
+ [E] Encrypted file (age)
 
- GIT STATUS
+ GIT STATUS LABELS
  ───────────────────────────
- [synced]   Up to date
- [↑N]       Ahead of remote
- [↓N]       Behind remote
- [no remote] No remote set
+ synced      Up to date with remote (or no divergence)
+ ahead N     Local commits not pushed
+ behind N    Remote commits not pulled
 
  RESTORE SYMBOLS
  ───────────────────────────
  NEW   File missing locally
  CHG   Local file differs
  OK    Local matches backup
+
+ CLI
+ ───────────────────────────
+ Archives: dmxcli backup PROJECT --archive [--format tar-gz|zip|7z]
+ List:     dmxcli archives PROJECT
 "#;
 
     let help = Paragraph::new(help_text)
         .style(Style::default())
+        .scroll((app.help_scroll, 0))
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title(" Help ")
+                .title(format!(" Help (scroll {}) ", app.help_scroll))
                 .style(Style::default().bg(Color::Black)),
         );
 

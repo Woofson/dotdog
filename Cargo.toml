@@ -4,11 +4,13 @@ members = [
     "crates/dmcore",
     "crates/dmcli",
     "crates/dmtui",
-    "crates/dmgui",
 ]
+# dmgui lives in crates/dmgui but is not a workspace member (CLI+TUI focus).
+# Build later: cargo build --manifest-path crates/dmgui/Cargo.toml --release
+exclude = ["crates/dmgui"]
 
 [workspace.package]
-version = "2.0.1"
+version = "2.0.2"
 edition = "2021"
 authors = ["Woofson <https://github.com/Woofson>"]
 license = "MIT"
@@ -31,9 +33,8 @@ ratatui = "0.29"
 crossterm = "0.28"
 ignore = "0.4"
 syntect = "5.2"
-eframe = { version = "0.29", default-features = false, features = ["default_fonts", "glow"] }
 age = "0.11"
 
 # Legacy v1 package - kept for reference during migration
 # The original src/ directory contains the v1 codebase
-# Migration path: extract logic into dmcore, frontends into dmcli/dmtui/dmgui
+# Migration path: extract logic into dmcore, frontends into dmcli/dmtui (+ optional dmgui)

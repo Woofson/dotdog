@@ -13,6 +13,29 @@ pub fn handle_keyboard(app: &mut GuiApp, ctx: &Context) {
         return;
     }
 
+    if app.show_help {
+        ctx.input(|i| {
+            if i.key_pressed(Key::F1)
+                || i.key_pressed(Key::Escape)
+                || (i.key_pressed(Key::Slash) && i.modifiers.shift)
+            {
+                app.show_help = false;
+            }
+        });
+        return;
+    }
+
+    if app.show_about {
+        ctx.input(|i| {
+            if i.key_pressed(Key::Escape)
+                || (i.key_pressed(Key::Num1) && i.modifiers.shift)
+            {
+                app.show_about = false;
+            }
+        });
+        return;
+    }
+
     // Don't process while dialogs are open
     if app.creating_project
         || app.confirm_delete
@@ -21,8 +44,6 @@ pub fn handle_keyboard(app: &mut GuiApp, ctx: &Context) {
         || app.password_prompt_visible
         || app.restore_confirm.visible
         || app.viewer_visible
-        || app.show_help
-        || app.show_about
     {
         return;
     }
@@ -113,12 +134,12 @@ fn handle_projects_keyboard(app: &mut GuiApp, i: &egui::InputState) {
             app.project_selected = Some(sel.saturating_sub(10));
         }
     }
-    if i.key_pressed(Key::Home) || (i.key_pressed(Key::G) && !i.modifiers.shift) {
+    if i.key_pressed(Key::Home) {
         if list_len > 0 {
             app.project_selected = Some(0);
         }
     }
-    if i.key_pressed(Key::End) || (i.key_pressed(Key::G) && i.modifiers.shift) {
+    if i.key_pressed(Key::End) {
         if list_len > 0 {
             app.project_selected = Some(list_len - 1);
         }
@@ -138,6 +159,9 @@ fn handle_projects_keyboard(app: &mut GuiApp, i: &egui::InputState) {
     }
     if i.key_pressed(Key::A) && i.modifiers.shift {
         app.backup_project();
+    }
+    if i.key_pressed(Key::B) && !i.modifiers.shift {
+        app.backup_project_archive();
     }
     if i.key_pressed(Key::S) && !i.modifiers.shift {
         app.sync_project();
@@ -168,10 +192,9 @@ fn handle_projects_keyboard(app: &mut GuiApp, i: &egui::InputState) {
     if i.key_pressed(Key::G) && i.modifiers.shift {
         app.setting_remote = true;
         app.remote_input.clear();
-    }
-    if i.key_pressed(Key::G) && !i.modifiers.shift && !i.modifiers.ctrl {
-        // 'g' without shift for git refresh (but not 'gg' for go to top)
-        // This is handled by Home key above, so this is safe
+    } else if i.key_pressed(Key::G) && !i.modifiers.shift && !i.modifiers.ctrl {
+        app.refresh_remote_status();
+        app.refresh_projects();
     }
     if i.key_pressed(Key::P) && !i.modifiers.shift {
         app.push_project();
@@ -181,7 +204,6 @@ fn handle_projects_keyboard(app: &mut GuiApp, i: &egui::InputState) {
     }
     if i.key_pressed(Key::R) {
         app.refresh_projects();
-        app.refresh_remote_status();
         app.message = Some(("Refreshed".to_string(), false));
     }
     if i.key_pressed(Key::V) {
@@ -429,6 +451,22 @@ fn handle_restore_keyboard(app: &mut GuiApp, i: &egui::InputState) {
             // Restore
             if i.key_pressed(Key::Enter) || i.key_pressed(Key::R) {
                 app.show_restore_confirm();
+            }
+
+            if i.key_pressed(Key::V) {
+                let open = app.restore_file_selected.and_then(|sel| {
+                    app.restore_files
+                        .get(sel)
+                        .map(|f| (f.restore_path.clone(), f.display_path.clone()))
+                });
+                if let Some((path, title)) = open {
+                    if path.exists() {
+                        app.load_file_into_viewer(&path, &title);
+                    } else {
+                        app.message =
+                            Some(("Local file not present for this path".to_string(), true));
+                    }
+                }
             }
 
             // Back
