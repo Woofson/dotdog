@@ -17,8 +17,8 @@ use std::path::{Path, PathBuf};
 #[command(name = "dotdog", bin_name = "dotdog")]
 #[command(author = "Bolt J Woofson <https://github.com/Woofson/dotdog>")]
 #[command(version = env!("CARGO_PKG_VERSION"))]
-#[command(about = "DotDog 🐶 - Modern dotfile compositor with git versioning & NoteDog TUI (formerly Dot Matrix)")]
-#[command(after_help = "Run 'dotdog' without arguments to launch the interactive NoteDog TUI.")]
+#[command(about = "DotDog 🐶 - Modern dotfile compositor with git versioning & DotDog TUI (formerly Dot Matrix)")]
+#[command(after_help = "Run 'dotdog' without arguments to launch the interactive DotDog TUI.")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Commands>,
@@ -30,7 +30,7 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug, PartialEq, Eq)]
 pub enum Commands {
-    /// Launch the interactive NoteDog TUI (default when run without arguments)
+    /// Launch the interactive DotDog TUI (default when run without arguments)
     Tui,
 
     /// Initialize dotmatrix configuration and directories

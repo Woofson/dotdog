@@ -3,7 +3,7 @@ name = "dotdog"
 version = "3.0.0"
 edition = "2021"
 authors = ["Bolt J Woofson <https://github.com/Woofson>"]
-description = "DotDog 🐶 - Modern dotfile compositor with git versioning & NoteDog TUI"
+description = "DotDog 🐶 - Modern dotfile compositor with git versioning & DotDog TUI"
 license = "MIT"
 
 [[bin]]

@@ -142,7 +142,7 @@ exclude = [
 # UNIFIED BINARY CLI USAGE & SCRIPTS
 # ═══════════════════════════════════════════════════════════════
 #
-# Running 'dotdog' (or 'dmx') without arguments opens the interactive NoteDog TUI.
+# Running 'dotdog' (or 'dmx') without arguments opens the interactive DotDog TUI.
 # Running 'dotdog <subcommand>' runs headless CLI operations:
 #
 # 1. Password file (recommended for cron):

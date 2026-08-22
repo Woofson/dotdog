@@ -1,4 +1,4 @@
-//! DotDog 🐶 - Modern dotfile compositor with git versioning & NoteDog TUI
+//! DotDog 🐶 - Modern dotfile compositor with git versioning & DotDog TUI
 //!
 //! Companion to NoteDog in the Woofson canine tool suite.
 
