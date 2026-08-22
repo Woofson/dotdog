@@ -1,0 +1,66 @@
+##############################################
+#                                            #
+#               Dracula Theme                #
+#                                            #
+##############################################
+
+active_border = "#BD93F9"         # Purple
+inactive_border = "#44475A"       # Current Line / Selection Slate
+sidebar_title = "#8BE9FD"         # Cyan
+active_sidebar_border = "#FF79C6" # Pink
+foreground = "#F8F8F2"           # Foreground Off-White
+background = "none"              # Canvas background ("none" or "#282A36")
+highlight_bg = "#44475A"         # Current Line / Slate fill
+highlight_fg = "#50FA7B"         # Green
+header_1 = "#BD93F9"             # Purple
+header_2 = "#8BE9FD"             # Cyan
+header_3 = "#50FA7B"             # Green
+code_bg = "#21222C"              # Darker Background
+encrypted_tag = "#FF5555"        # Red
+
+notebook_item_bg = "none"
+notebook_item_fg = "#F8F8F2"
+notebook_item_weight = "normal"
+notebook_item_selected_bg = "#44475A"
+notebook_item_selected_fg = "#50FA7B"
+notebook_item_selected_weight = "bold"
+notebook_icon_fg = "#8BE9FD"
+notebook_icon_selected_fg = "#50FA7B"
+
+section_item_bg = "none"
+section_item_fg = "#F8F8F2"
+section_item_weight = "normal"
+section_item_selected_bg = "#44475A"
+section_item_selected_fg = "#50FA7B"
+section_item_selected_weight = "bold"
+section_icon_fg = "#8BE9FD"
+section_icon_selected_fg = "#50FA7B"
+
+note_item_bg = "none"
+note_item_fg = "#F8F8F2"
+note_item_weight = "normal"
+note_item_selected_bg = "#44475A"
+note_item_selected_fg = "#50FA7B"
+note_item_selected_weight = "bold"
+note_icon_fg = "#8BE9FD"
+note_icon_selected_fg = "#50FA7B"
+
+notebook_border_active = "#FF79C6"
+notebook_border_inactive = "#44475A"
+notebook_title_active = "#8BE9FD"
+notebook_title_inactive = "#8BE9FD"
+
+section_border_active = "#FF79C6"
+section_border_inactive = "#44475A"
+section_title_active = "#8BE9FD"
+section_title_inactive = "#8BE9FD"
+
+note_border_active = "#FF79C6"
+note_border_inactive = "#44475A"
+note_title_active = "#8BE9FD"
+note_title_inactive = "#8BE9FD"
+
+preview_border_active = "#BD93F9"
+preview_border_inactive = "#44475A"
+preview_title_active = "#BD93F9"
+preview_title_inactive = "#8BE9FD"

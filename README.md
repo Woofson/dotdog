@@ -1,291 +1,323 @@
-# Dot Matrix 2.0.3
+# Dot Matrix 🤖
 
-> *"We'll have none of that mister! How far did he get? What'd he touch?"* - Dot Matrix, Spaceballs
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org)
+[![Version](https://img.shields.io/badge/version-2.1.0-green.svg)](Cargo.toml)
 
-**Project compositor with git versioning.** Track files scattered across your system without moving them. Each project gets its own isolated git repository for independent version history.
+> *"We'll have none of that mister! How far did he get? What'd he touch?"*  
+> — **Dot Matrix**, *Spaceballs*
 
-Named after Dot Matrix from Spaceballs, because managing your files should be as reliable as a loyal droid companion.
+**Dot Matrix** is a project compositor, dotfile manager, and versioned backup engine for Linux, macOS, and Windows. It lets you organize, version, encrypt, and backup files scattered across your entire filesystem **without moving them or creating fragile symlink webs**.
 
-## What's New in v2
+Featuring a **NoteDog-inspired multi-pane TUI**, 12 embedded theme presets, Age per-file encryption, independent per-project Git repositories, and intelligent path remapping for effortless distro hopping.
 
-- **Per-project git repositories** - Each project has its own `.git/`, store, and index
-- **Independent remotes** - Push different projects to different repositories
-- **Path migration** - Restore backups even after changing username or machine
-- **File viewer** - Syntax-highlighted viewer with conf.d directory assembly
-- **Custom commit messages** - Add context to your backup commits
+---
 
-## Features
+## 🌟 Why Dot Matrix?
 
-- **Files stay where they are** - No symlinks, no moving, track files in place
-- **Project-based organization** - Group related files across different directories
-- **Per-project versioning** - Independent git history for each project
-- **Drift detection** - SHA256-based change detection (synced, drifted, new, missing)
-- **Three track modes** - Git (version control), Backup (incremental), or Both
-- **Per-file encryption** - Encrypt sensitive files using [age](https://age-encryption.org)
-- **Archive backups** - tar.gz, zip, or 7z snapshots
-- **Cross-platform** - Linux, macOS, Windows
-- **TUI interface** - Keyboard-driven terminal UI with ratatui
-- **Path remapping** - Restore to different locations (distro-hopping friendly)
+Traditional dotfile managers (like GNU Stow, bare git repositories in `$HOME`, or symlink managers) force you into rigid compromises:
+- **Symlink Fragility**: Moving or renaming files breaks links; tools that replace files on save (atomic writes) sever symlinks.
+- **Home Directory Pollution**: A bare git repo in `$HOME` makes untracked files messy and risks accidental commits of sensitive data.
+- **Monolithic Commits**: All your dotfiles end up in one giant repository, making it impossible to keep public configs (e.g. Neovim, Tmux) separate from sensitive ones (e.g. SSH keys, work VPNs).
 
-## Installation
+**Dot Matrix solves this with in-place composition**:
+1. **Zero Symlinks**: Files stay exactly where your apps expect them (`~/.config/nvim`, `~/.ssh/config`, `/etc/hosts`).
+2. **Isolated Project Repositories**: Each project gets its own independent `.git/` repository, remote URL, and history.
+3. **Multi-Pane Visual Explorer**: Inspect live syntax-highlighted previews, diffs, and project statistics at a glance.
+4. **Strong Age Encryption**: Sensitive files are encrypted at rest with [Age](https://age-encryption.org) using modern cryptographic primitives (ChaCha20-Poly1305 / scrypt).
+
+---
+
+## ✨ Key Features
+
+- 📁 **In-Place File Tracking**: Track files wherever they live across your system without copying or symlinking.
+- 📦 **Per-Project Isolation**: Group related files into logical projects (`nvim-config`, `workstation`, `ssh-keys`). Each project has its own Git history and remote.
+- 🎨 **NoteDog Visual Design**: 2-pane Superfile/NoteDog layout with rounded borders, modal dialogs, and clean status indicators.
+- 🌈 **12 Embedded Themes**: Seamless support for `notedog`, `nord`, `catppuccin-mocha`, `dracula`, `gruvbox`, `tokyo-night`, `ayu-dark`, `solarized-dark`, `monokai`, `rose-pine`, `everforest`, and `one-dark`.
+- 🪟 **Transparent Terminal Support**: Works natively with transparent and blurred terminal backdrops (`transparent_background = true`).
+- 🔒 **Per-File Age Encryption**: Protect passwords, tokens, and private keys with passphrase-authenticated Age encryption.
+- ⚡ **Three Track Modes**:
+  - `[G] Git`: Version controlled, diffable, ready to push to GitHub/GitLab.
+  - `[B] Backup`: Incremental deduplicated snapshots in local content-addressed storage.
+  - `[+] Both`: Full version control plus local snapshot backup.
+- 🔍 **Live Inspector & File Viewer**: Real-time syntax-highlighted inspector, full-file modal viewer, and fullscreen mode (`f` / `F11`).
+- 📂 **Modular `conf.d` Assembly**: View split configuration directories (e.g. `sway/config.d/`, `fish/conf.d/`) assembled into a continuous annotated document.
+- 🔄 **Distro & User Path Remapping**: Restore backups seamlessly across different operating systems or usernames (`/home/olduser` → `/home/newuser`).
+- 💻 **Unified CLI & TUI**: Manage everything interactively via `dmxtui` or automate with `dmxcli` (including `--json` for scripts).
+
+---
+
+## 🚀 Installation
+
+### Building from Source
+
+Ensure you have Rust and Cargo installed ([rustup.rs](https://rustup.rs)):
 
 ```bash
 git clone https://github.com/Woofson/dotmatrix.git
 cd dotmatrix
+cargo build --release
+```
+
+Install the binaries to your local path:
+
+```bash
+cp target/release/dmxtui ~/.local/bin/   # Terminal UI
+cp target/release/dmxcli ~/.local/bin/   # CLI Tool
+```
+
+Or install directly via Cargo:
+
+```bash
 cargo install --path crates/dmtui
+cargo install --path crates/dmcli
 ```
 
-Or build the TUI directly:
+---
 
+## 🎮 Quick Start Guide
+
+### 1. Launch the TUI
 ```bash
-cargo build --release -p dmtui
-cp target/release/dmxtui ~/.local/bin/
-```
-
-## Quick Start
-
-```bash
-# Launch the TUI
 dmxtui
 ```
 
-In the TUI:
-1. Press `n` to create a new project
-2. Press `Tab` to go to "Add Files"
-3. Navigate to files and press `Enter` to add them
-4. Press `Tab` to return to "Projects"
-5. Press `a` to backup with message (or `A` for silent backup)
+### 2. Basic Workflow in 30 Seconds
+1. **Create a Project**: Press `n` to create a new project (e.g., `nvim-config`).
+2. **Add Files**: Press `Tab` or `2` to switch to the **Add Files** explorer.
+   - Navigate with `j`/`k` or arrow keys.
+   - Press `Enter` to step into folders, or `a` / `Enter` on a file to track it.
+   - Press `t` to toggle track mode (`Git`, `Backup`, or `Both`).
+   - Press `R` on a directory for recursive batch scanning.
+3. **Inspect & Backup**: Press `Tab` or `1` to return to **Projects**.
+   - Review your tracked files and live syntax-highlighted preview on the right pane.
+   - Press `a` to create a backup commit with a custom message (or `A` for instant silent backup).
+   - Press `G` to configure a Git remote and `p` to push to GitHub.
 
-## Configuration
+---
 
-### Manifest Location
-`~/.config/dotmatrix/manifest.toml`
+## 🖥️ TUI Multi-Pane Interface
+
+Dot Matrix features a 2-pane NoteDog layout across three dedicated tabs:
+
+### 1. 📦 Projects View (`Tab` / `1`)
+- **Left Pane (42%)**: Collapsible tree of tracked projects and files with real-time status badges (`✓` Synced, `⚠` Drifted, `+` New, `✗` Missing) and encryption locks (`🔒`).
+- **Right Pane (58%)**: 
+  - **Project Selected**: Live dashboard showing Git remote state, sync health, file breakdown by track mode, and recent commit log.
+  - **File Selected**: Live syntax-highlighted file inspector showing file size, path, and file contents.
+
+### 2. 📂 Add Files Explorer (`Tab` / `2`)
+- **Left Pane (52%)**: Fast directory navigator showing folders (`📁`), files (`📄`), tracked project indicators (`✓ [nvim-config]`), and file sizes.
+- **Right Pane (48%)**: Target project status card, active add mode (`[G]`, `[B]`, `[+]`), quick action guide, and live preview of the currently highlighted file.
+
+### 3. 🔄 Restore & Version Diff (`Tab` / `3`)
+- **Left Pane (42%)**: Backup projects on disk and searchable commit revision history with timestamps and short hashes.
+- **Right Pane (58%)**: Files contained in the selected commit (`NEW`, `CHG`, `OK`), multi-select checkboxes (`[*]`), backup previews (`b`), local file previews (`l`), and side-by-side diff inspection (`d`).
+
+---
+
+## ⌨️ Keyboard Shortcuts Reference
+
+### Global Controls
+| Key | Action |
+|:---|:---|
+| `Tab` / `Shift+Tab` | Cycle between tabs (Projects → Add Files → Restore) |
+| `1`, `2`, `3` | Jump directly to Projects, Add Files, or Restore tab |
+| `?` | Toggle Help Cheat Sheet modal |
+| `!` / `F2` / `Ctrl+A` | Open About Dot Matrix modal (author & version info) |
+| `f` / `F11` | Toggle Fullscreen viewer mode |
+| `v` | Open full syntax-highlighted file viewer |
+| `q` / `Esc` | Close dialog / Quit Dot Matrix |
+
+### Projects Tab
+| Key | Action |
+|:---|:---|
+| `j` / `↓`, `k` / `↑` | Navigate items |
+| `PgUp` / `PgDn` | Page up / down (10 items) |
+| `Home` / `End` | Jump to top / bottom |
+| `Enter` / `l` / `→` | Expand / collapse project tree |
+| `h` / `←` | Collapse project |
+| `a` | Create backup commit with custom message prompt |
+| `A` | Instant silent backup commit |
+| `b` | Create standalone archive snapshot (`.tar.gz`, `.zip`, `.7z`) |
+| `s` | Sync project hashes against disk |
+| `x` | Toggle Age encryption for highlighted file |
+| `X` | Toggle Age encryption for all files in highlighted project |
+| `m` | Cycle track mode (`Git` → `Backup` → `Both`) |
+| `n` / `Ctrl+N` | Create new project |
+| `d` / `D` / `Ctrl+D` | Delete selected project (with confirmation) |
+| `c` | Clean up deleted/missing files from manifest |
+| `C` | Acknowledge missing files (mutes warnings) |
+| `G` | Configure Git remote URL |
+| `g` | Refresh Git remote sync status |
+| `p` / `P` | Git Push / Git Pull from remote |
+| `r` | Refresh projects and disk state |
+
+### Add Files Tab
+| Key | Action |
+|:---|:---|
+| `Enter` / `l` / `→` | Enter directory / Add file to target project |
+| `h` / `←` / `Backspace` | Navigate to parent directory |
+| `a` | Add selected file to target project |
+| `R` | Open Recursive Scan modal (batch add files) |
+| `t` | Cycle default add track mode (`[G]` → `[B]` → `[+]`) |
+| `p` | Cycle target project |
+| `n` | Create new project |
+| `u` | Untrack selected file |
+| `~` | Jump directly to user `$HOME` directory |
+
+### Restore Tab
+| Key | Action |
+|:---|:---|
+| `Enter` | Browse commits / Confirm file restore |
+| `Space` | Toggle multi-select checkbox on file |
+| `a` / `d` | Select all files / Deselect all |
+| `b` | View file content from backup |
+| `l` | View file content currently on local disk |
+| `d` | View colorized line diff between backup and local |
+| `h` / `←` / `Backspace` | Go back to commits / projects list |
+| `r` | Refresh backup snapshots |
+
+---
+
+## 🎨 Themes & Customization
+
+Dot Matrix includes 12 NoteDog-compatible themes embedded directly into the binary.
+
+### Built-in Presets
+| Preset | Style Description |
+|:---|:---|
+| `notedog` *(Default)* | Classic warm terminal palette with golden yellow and cyan accents |
+| `nord` | Arctic cool blue and frost palette |
+| `catppuccin-mocha` | Soothing modern pastel dark theme |
+| `dracula` | Vibrant purple, pink, and cyan high-contrast theme |
+| `gruvbox` | Retro groove warm brown and earth tones |
+| `tokyo-night` | Deep indigo and neon night aesthetic |
+| `ayu-dark` | Warm dark theme with crisp orange highlights |
+| `solarized-dark` | Precision low-contrast teal and yellow palette |
+| `monokai` | Iconic high-contrast hacker palette |
+| `rose-pine` | Rosy pine, muted lilac, and gold palette |
+| `everforest` | Calming natural green and moss aesthetic |
+| `one-dark` | Clean Atom / VSCode dark classic |
+
+### Configuration File (`~/.config/dotmatrix/config.toml`)
+```toml
+# Active theme name (matches preset or custom TOML filename in themes/)
+theme = "catppuccin-mocha"
+
+# Enable true transparent terminal background
+transparent_background = false
+
+# Show bottom status & shortcut hint bar
+show_help_bar = true
+
+# Auto-populate built-in themes into ~/.config/dotmatrix/themes/
+spawn_themes = true
+```
+
+### Custom Themes
+You can create your own theme by dropping a `.toml` file in `~/.config/dotmatrix/themes/my-theme.toml`:
 
 ```toml
-[project.nvim-config]
-files = [
-    { path = "~/.config/nvim/init.lua", track = "git" },
-    { path = "~/.config/nvim/lua/**", track = "git" },
-]
-remote = "git@github.com:user/nvim-config.git"
+name = "my-theme"
+author = "Your Name"
 
-[project.ssh-keys]
-files = [
-    { path = "~/.ssh/config", track = "both", encrypted = true },
-    { path = "~/.ssh/id_*", track = "backup", encrypted = true },
-]
+[colors]
+foreground = "#c0caf5"
+background = "#1a1b26" # or "none" for transparent
+active_border = "#7aa2f7"
+inactive_border = "#414868"
+sidebar_title = "#7dcfff"
+active_sidebar_border = "#bb9af7"
+highlight_bg = "#28345a"
+highlight_fg = "#ffffff"
+encrypted_tag = "#f7768e"
+
+[palette]
+primary = "#7aa2f7"
+secondary = "#7dcfff"
+accent = "#bb9af7"
+border = "#414868"
 ```
 
-### Data Structure
-`~/.local/share/dotmatrix/`
+---
+
+## 🛠️ CLI Reference (`dmxcli`)
+
+All Dot Matrix operations can be executed headlessly for scripting and automation:
+
+```bash
+# Project Management
+dmxcli init                                    # Initialize Dot Matrix storage
+dmxcli new <project> [-d "description"]        # Create project
+dmxcli delete <project> [--force]              # Delete project
+dmxcli list [-v]                               # List all tracked projects
+dmxcli info <project>                          # Detailed project inspection
+
+# File Operations
+dmxcli add <project> <files...> [-t git|backup|both] [-e]  # Track files (optionally encrypted)
+dmxcli remove <project> <files...>             # Stop tracking files
+dmxcli status [project] [-c|--changes]         # Show drift status across files
+dmxcli sync [project]                          # Synchronize file hashes
+
+# Backups & Restores
+dmxcli backup [project] [-m "Commit message"]  # Create backup commit
+dmxcli backup [project] --archive [--format tar-gz|zip|7z]  # Create standalone archive
+dmxcli restore <project> [files...] [--dry-run]             # Restore files from backup
+
+# Git Remote Management
+dmxcli git <project> remote [--set <url>]      # Get/Set Git remote URL
+dmxcli git <project> push                      # Push project to Git remote
+dmxcli git <project> pull                      # Pull project from Git remote
+dmxcli git <project> log [-c 10]               # View commit history
+
+# Global Scripting Flag
+dmxcli list --json                             # Output machine-readable JSON
+```
+
+---
+
+## 📂 Storage Architecture
+
+Dot Matrix keeps all manifests in standard XDG configuration paths and stores project repositories in XDG data directories:
 
 ```
+~/.config/dotmatrix/
+├── config.toml           # General settings (theme, transparency, help bar)
+├── manifest.toml         # User projects and tracked file definitions
+└── themes/               # Custom and exported TOML themes
+
 ~/.local/share/dotmatrix/
 ├── projects/
 │   ├── nvim-config/
-│   │   ├── .git/           # Project-specific git repo
-│   │   ├── store/          # Content-addressed storage
-│   │   └── index.json      # File tracking index
+│   │   ├── .git/         # Isolated Git repository for this project
+│   │   ├── store/        # Content-addressed snapshot blobs
+│   │   └── index.json    # File tracking SHA256 index
 │   └── ssh-keys/
 │       ├── .git/
 │       ├── store/
 │       └── index.json
-└── backups/                 # Archive backups (shared)
+└── backups/              # Standalone archive backups (.tar.gz, .zip, .7z)
 ```
 
-## Track Modes
+---
 
-| Mode | Symbol | Description |
-|------|--------|-------------|
-| Git | `[G]` | Version controlled, diffable, shareable |
-| Backup | `[B]` | Incremental content-addressed storage |
-| Both | `[+]` | Both git tracking and backup |
+## 🤝 Contributing & Development
 
-## TUI Key Bindings
-
-### Navigation (All Tabs)
-| Key | Action |
-|-----|--------|
-| `↑/k` `↓/j` | Move up/down |
-| `PgUp/PgDn` | Page up/down |
-| `Home/End` | Jump to start/end |
-
-### Global
-| Key | Action |
-|-----|--------|
-| `Tab` / `1-3` | Switch tabs |
-| `?` | Show/hide help |
-| `!` | About dialog |
-| `v` | View file content |
-| `q` | Quit |
-
-### File Viewer
-| Key | Action |
-|-----|--------|
-| `↑/k` `↓/j` | Scroll up/down |
-| `PgUp/PgDn` | Page up/down |
-| `g/Home` | Go to top |
-| `G/End` | Go to bottom |
-| `v/q/Esc` | Close viewer |
-
-### Projects Tab
-| Key | Action |
-|-----|--------|
-| `Enter/→/l` | Expand/collapse project |
-| `←/h` | Collapse project |
-| `m` | Toggle track mode (Git → Backup → Both) |
-| `x` | Toggle encryption |
-| `a` | Backup with commit message |
-| `A` | Silent backup (no popup) |
-| `s` | Sync project |
-| `c` | Clean up missing source files (remove red `✗` entries) |
-| `C` | Acknowledge missing files (keep tracked, mute to `~`) |
-| `n` | New project |
-| `D` | Delete project |
-| `r` | Refresh |
-| `g` | Refresh git status |
-| `G` | Set git remote URL |
-| `p` | Push to remote |
-| `P` | Pull from remote |
-
-### Add Files Tab
-| Key | Action |
-|-----|--------|
-| `Enter/→/l` | Open directory or add file |
-| `←/h/Bksp` | Parent directory |
-| `a` | Add selected file |
-| `R` | Recursive add (folder) |
-| `t` | Cycle track mode |
-| `p` | Cycle target project |
-| `n` | New project |
-| `~` | Go to home |
-
-### Restore Tab
-| Key | Action |
-|-----|--------|
-| `Enter/→/l` | View files in backup / Restore |
-| `Space` | Toggle multi-select |
-| `v` | View file content |
-| `←/h/Bksp` | Back to commits |
-| `r` | Refresh |
-
-## CLI Commands
+We welcome contributions! To build and test the project locally:
 
 ```bash
-# Initialize Dot Matrix
-dmxcli init
-
-# Project management
-dmxcli new <name> [-d "description"]
-dmxcli delete <name> [--force]
-dmxcli list [-v]
-dmxcli info <name>
-
-# File management
-dmxcli add <project> <files...> [-t git|backup|both] [-e]
-dmxcli remove <project> <files...>
-
-# Status and sync
-dmxcli status [project] [-c|--changes]
-dmxcli sync [project]
-
-# Backup and restore
-dmxcli backup [project] [-m "message"] [--archive] [--format tar-gz|zip|7z]
-dmxcli backup [project] --password-file FILE  # For encrypted files
-dmxcli restore <project> [files...] [--dry-run]
-
-# Git operations
-dmxcli git <project> remote [--set <url>]
-dmxcli git <project> push
-dmxcli git <project> pull
-dmxcli git <project> fetch
-dmxcli git <project> log [-c 10]
-dmxcli git <project> status
-
-# Archives and store
-dmxcli archives <project>
-dmxcli store [project]
-
-# Global flag (works with any command)
---json    Output as JSON for scripting
+cargo check --workspace        # Verify code sanity
+cargo test --workspace         # Run test suites
+cargo build --release          # Build optimized binaries
 ```
 
-## Status Indicators
+---
 
-### File Status
-| Symbol | Meaning |
-|--------|---------|
-| `✓` | Synced (green) |
-| `⚠` | Drifted (yellow) |
-| `+` | New file (cyan) |
-| `✗` | Missing (red) |
+## 📄 License
 
-### Git Status
-| Symbol | Meaning |
-|--------|---------|
-| `[synced]` | Up to date with remote |
-| `[↑N]` | N commits ahead |
-| `[↓N]` | N commits behind |
-| `[no remote]` | No remote configured |
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
-### Restore Status
-| Symbol | Meaning |
-|--------|---------|
-| `NEW` | File missing locally |
-| `CHG` | Local file differs |
-| `OK` | Matches backup |
+## 👤 Author
 
-### Restore Backup Types
-| Symbol | Meaning |
-|--------|---------|
-| `git:N` | Incremental git backups in project repo |
-| `arc:N` | Archive backups in shared backups directory |
-
-## File Viewer
-
-Press `v` on any file to view its contents with syntax highlighting.
-
-**conf.d Directory Support:** When viewing a directory, all files are assembled into a single view with headers. Files are sorted by numeric prefix first (`00-base.conf`, `10-network.conf`, `99-local.conf`), then alphabetically.
-
-## Path Migration
-
-Restore automatically remaps paths when your username or home directory changes:
-
-- `/home/olduser/.config/file` → `/home/newuser/.config/file`
-- `/Users/olduser/.config/file` → `/Users/newuser/.config/file`
-
-This allows restoring backups made on different machines or by different users.
-
-## Architecture
-
-```
-     TUI              ← keyboard-driven interface
-      ↓
-   dmcore             ← all logic, no presentation
-      ↓
-manifest + store + git + backup
-```
-
-### Crates
-- `dmcore` - Core library (all logic)
-- `dmtui` - TUI binary (`dmxtui`)
-- `dmcli` - CLI binary (`dmxcli`)
-
-The previous egui GUI (`crates/dmgui` / `dmxgui`) is **not built** by the root workspace today so CLI and TUI can stay the focus. Revive later with `cargo build --manifest-path crates/dmgui/Cargo.toml --release` if needed.
-
-## Development
-
-```bash
-cargo build                    # Build all crates
-cargo build -p dmtui           # Build just TUI
-cargo test                     # Run tests
-cargo run -p dmtui             # Run TUI
-```
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Author
-
-[Woofson](https://github.com/Woofson)
+**Bolt J Woofson** — [@Woofson](https://github.com/Woofson)

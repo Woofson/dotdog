@@ -1,0 +1,66 @@
+##############################################
+#                                            #
+#                 Nord Theme                 #
+#                                            #
+##############################################
+
+active_border = "#88C0D0"         # Frost Ice Cyan (nord8)
+inactive_border = "#4C566A"       # Polar Night Slate (nord3)
+sidebar_title = "#81A1C1"         # Frost Arctic Blue (nord9)
+active_sidebar_border = "#88C0D0" # Frost Ice Cyan (nord8)
+foreground = "#ECEFF4"           # Snow Storm (nord6)
+background = "none"              # Canvas background ("none" or "#2E3440")
+highlight_bg = "#3B4252"         # Polar Night Highlight (nord1)
+highlight_fg = "#88C0D0"         # Frost Ice Cyan (nord8)
+header_1 = "#81A1C1"             # Frost Blue (nord9)
+header_2 = "#88C0D0"             # Frost Cyan (nord8)
+header_3 = "#8FBCBB"             # Frost Teal (nord7)
+code_bg = "#2E3440"              # Polar Night Dark (nord0)
+encrypted_tag = "#BF616A"        # Aurora Red (nord11)
+
+notebook_item_bg = "none"
+notebook_item_fg = "#D8DEE9"
+notebook_item_weight = "normal"
+notebook_item_selected_bg = "#3B4252"
+notebook_item_selected_fg = "#88C0D0"
+notebook_item_selected_weight = "bold"
+notebook_icon_fg = "#81A1C1"
+notebook_icon_selected_fg = "#88C0D0"
+
+section_item_bg = "none"
+section_item_fg = "#D8DEE9"
+section_item_weight = "normal"
+section_item_selected_bg = "#3B4252"
+section_item_selected_fg = "#88C0D0"
+section_item_selected_weight = "bold"
+section_icon_fg = "#81A1C1"
+section_icon_selected_fg = "#88C0D0"
+
+note_item_bg = "none"
+note_item_fg = "#D8DEE9"
+note_item_weight = "normal"
+note_item_selected_bg = "#3B4252"
+note_item_selected_fg = "#88C0D0"
+note_item_selected_weight = "bold"
+note_icon_fg = "#81A1C1"
+note_icon_selected_fg = "#88C0D0"
+
+notebook_border_active = "#88C0D0"
+notebook_border_inactive = "#4C566A"
+notebook_title_active = "#81A1C1"
+notebook_title_inactive = "#81A1C1"
+
+section_border_active = "#88C0D0"
+section_border_inactive = "#4C566A"
+section_title_active = "#81A1C1"
+section_title_inactive = "#81A1C1"
+
+note_border_active = "#88C0D0"
+note_border_inactive = "#4C566A"
+note_title_active = "#81A1C1"
+note_title_inactive = "#81A1C1"
+
+preview_border_active = "#88C0D0"
+preview_border_inactive = "#4C566A"
+preview_title_active = "#88C0D0"
+preview_title_inactive = "#81A1C1"

@@ -1,0 +1,66 @@
+##############################################
+#                                            #
+#           Catppuccin Mocha Theme           #
+#                                            #
+##############################################
+
+active_border = "#CBA6F7"         # Mauve
+inactive_border = "#45475A"       # Surface1
+sidebar_title = "#89B4FA"         # Blue
+active_sidebar_border = "#B4BEFE" # Lavender
+foreground = "#CDD6F4"           # Text
+background = "none"              # Canvas background ("none" or "#1E1E2E")
+highlight_bg = "#313244"         # Surface0
+highlight_fg = "#CBA6F7"         # Mauve
+header_1 = "#CBA6F7"             # Mauve
+header_2 = "#89B4FA"             # Blue
+header_3 = "#94E2D5"             # Teal
+code_bg = "#181825"              # Mantle
+encrypted_tag = "#F38BA8"        # Red
+
+notebook_item_bg = "none"
+notebook_item_fg = "#CDD6F4"
+notebook_item_weight = "normal"
+notebook_item_selected_bg = "#313244"
+notebook_item_selected_fg = "#CBA6F7"
+notebook_item_selected_weight = "bold"
+notebook_icon_fg = "#89B4FA"
+notebook_icon_selected_fg = "#CBA6F7"
+
+section_item_bg = "none"
+section_item_fg = "#CDD6F4"
+section_item_weight = "normal"
+section_item_selected_bg = "#313244"
+section_item_selected_fg = "#CBA6F7"
+section_item_selected_weight = "bold"
+section_icon_fg = "#89B4FA"
+section_icon_selected_fg = "#CBA6F7"
+
+note_item_bg = "none"
+note_item_fg = "#CDD6F4"
+note_item_weight = "normal"
+note_item_selected_bg = "#313244"
+note_item_selected_fg = "#CBA6F7"
+note_item_selected_weight = "bold"
+note_icon_fg = "#89B4FA"
+note_icon_selected_fg = "#CBA6F7"
+
+notebook_border_active = "#B4BEFE"
+notebook_border_inactive = "#45475A"
+notebook_title_active = "#89B4FA"
+notebook_title_inactive = "#89B4FA"
+
+section_border_active = "#B4BEFE"
+section_border_inactive = "#45475A"
+section_title_active = "#89B4FA"
+section_title_inactive = "#89B4FA"
+
+note_border_active = "#B4BEFE"
+note_border_inactive = "#45475A"
+note_title_active = "#89B4FA"
+note_title_inactive = "#89B4FA"
+
+preview_border_active = "#CBA6F7"
+preview_border_inactive = "#45475A"
+preview_title_active = "#CBA6F7"
+preview_title_inactive = "#89B4FA"

@@ -5,6 +5,20 @@ All notable changes to dotmatrix will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-08-22
+
+### Added
+- **NoteDog Theme Engine**: Integrated NoteDog's visual design with 12 embedded theme presets (`notedog`, `nord`, `catppuccin-mocha`, `dracula`, `gruvbox`, `tokyo-night`, `ayu-dark`, `solarized-dark`, `monokai`, `rose-pine`, `everforest`, `one-dark`).
+- **Transparent Terminal Support**: Configurable with `transparent_background = true` or `background = "none"` in themes.
+- **2-Pane NoteDog/Superfile Workflow**: Redesigned all three tabs into streamlined 2-pane views with live inspectors, live file syntax preview, project dashboards, and diff viewers.
+- **Fullscreen Viewer Mode**: Toggle fullscreen file inspection anytime with `f` or `F11`.
+- **NoteDog Modal Dialogs**: Centered rounded and double-bordered dialogs for passphrases, git remotes, commit messages, deletes, and restores.
+- **Comprehensive Workflow Guide**: Added `Workflow.md` covering 7 practical usage scenarios.
+
+### Changed
+- Complete rewrite of `README.md` with updated architecture, visual guides, and CLI/TUI reference.
+- Improved frame cell buffer clearing to prevent ghost artifacts across tab transitions.
+
 ## [2.0.3] - 2026-05-06
 
 ### Added

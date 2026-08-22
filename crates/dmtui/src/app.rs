@@ -9,6 +9,7 @@ use dmcore::{
     recent_commits, retrieve_file_from, retrieve_file_from_encrypted, scan_project, CommitInfo,
     Config, FileStatus, Index, Manifest, ProjectSummary, RemoteStatus, TrackMode,
 };
+use crate::theme::Theme;
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::widgets::ListState;
 use serde::Deserialize;
@@ -68,6 +69,7 @@ pub enum Mode {
 }
 
 impl Mode {
+    #[allow(dead_code)]
     pub fn titles() -> Vec<&'static str> {
         vec!["Projects", "Add Files", "Restore"]
     }
@@ -99,6 +101,7 @@ pub enum RestoreView {
 
 /// Information about a backup project found on disk
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct BackupProject {
     pub name: String,
     pub path: PathBuf,
@@ -198,6 +201,7 @@ pub struct OpResult {
 
 /// A file that can be restored from a specific commit
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct RestoreFile {
     pub path: PathBuf,         // Original path from backup
     pub restore_path: PathBuf, // Path to restore to (may be remapped)
@@ -211,6 +215,7 @@ pub struct RestoreFile {
 
 /// File entry for recursive preview
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct PreviewFile {
     pub path: PathBuf,
     pub display_path: String,
@@ -229,6 +234,7 @@ pub struct RecursivePreviewState {
 
 /// A line in the file viewer with syntax highlighting
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ViewerLine {
     pub spans: Vec<(String, Style)>, // Text segments with ratatui styling
     pub file_header: bool,           // True if this is a file separator line
@@ -326,6 +332,15 @@ pub struct App {
     // Restore confirmation state
     pub restore_confirm: RestoreConfirmState,
     pub acknowledged_missing: HashSet<String>,
+
+    // NoteDog styling & Live Inspector state
+    pub theme: Theme,
+    pub is_fullscreen: bool,
+    pub live_preview_content: Vec<ViewerLine>,
+    pub live_preview_title: String,
+    pub live_preview_file_path: Option<PathBuf>,
+    pub live_preview_project_commits: Vec<CommitInfo>,
+    pub live_preview_scroll: usize,
 }
 
 /// File entry for browsing
@@ -350,6 +365,7 @@ impl App {
         let config = Config::load()?;
         let manifest = Manifest::load()?;
         let index = Index::load()?;
+        let theme = Theme::load_for_config(&config);
 
         let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("/"));
 
@@ -411,11 +427,19 @@ impl App {
             theme_set: ThemeSet::load_defaults(),
             restore_confirm: RestoreConfirmState::default(),
             acknowledged_missing: HashSet::new(),
+            theme,
+            is_fullscreen: false,
+            live_preview_content: Vec::new(),
+            live_preview_title: String::new(),
+            live_preview_file_path: None,
+            live_preview_project_commits: Vec::new(),
+            live_preview_scroll: 0,
         };
 
         app.refresh_projects();
         app.refresh_browse();
         app.scan_backup_projects();
+        app.update_live_preview();
 
         Ok(app)
     }
@@ -613,6 +637,8 @@ impl App {
         if self.project_list_state.selected().is_none() && !self.visible_items.is_empty() {
             self.project_list_state.select(Some(0));
         }
+
+        self.update_live_preview();
     }
 
     /// Refresh the browse file list
@@ -700,6 +726,8 @@ impl App {
         if !self.browse_files.is_empty() {
             self.browse_list_state.select(Some(0));
         }
+
+        self.update_live_preview();
     }
 
     /// Navigate into a directory
@@ -726,6 +754,7 @@ impl App {
                     self.browse_list_state.select(Some(idx));
                 }
             }
+            self.update_live_preview();
         }
     }
 
@@ -766,6 +795,7 @@ impl App {
         if !self.visible_items.is_empty() {
             self.project_list_state.select(Some(new_idx));
         }
+        self.update_live_preview();
     }
 
     /// Collapse selected project (if it's expanded)
@@ -788,6 +818,7 @@ impl App {
                 let new_idx = current_idx.min(self.visible_items.len().saturating_sub(1));
                 self.project_list_state.select(Some(new_idx));
             }
+            self.update_live_preview();
         }
     }
 
@@ -1153,6 +1184,7 @@ impl App {
     }
 
     /// List archive backups for the selected project
+    #[allow(dead_code)]
     pub fn list_project_archives(&self) -> Vec<dmcore::ArchiveInfo> {
         let project_name = match self.selected_project_name() {
             Some(name) => name,
@@ -1163,6 +1195,7 @@ impl App {
     }
 
     /// Check if selected project needs a password
+    #[allow(dead_code)]
     pub fn selected_project_needs_password(&self) -> bool {
         let project_name = match self.selected_project_name() {
             Some(name) => name,
@@ -2109,6 +2142,7 @@ impl App {
     }
 
     /// Restore selected files from the selected commit (legacy - now shows confirm dialog)
+    #[allow(dead_code)]
     pub fn perform_restore(&mut self) {
         self.show_restore_confirm();
     }
@@ -2971,6 +3005,147 @@ impl App {
     /// Toggle line numbers in viewer
     pub fn toggle_viewer_line_numbers(&mut self) {
         self.viewer_line_numbers = !self.viewer_line_numbers;
+    }
+
+    /// Toggle fullscreen mode for viewer/inspector
+    pub fn toggle_fullscreen(&mut self) {
+        self.is_fullscreen = !self.is_fullscreen;
+    }
+
+    /// Navigate projects list down
+    pub fn projects_next(&mut self, step: usize) {
+        if !self.visible_items.is_empty() {
+            let i = self.project_list_state.selected().unwrap_or(0);
+            let next = (i + step).min(self.visible_items.len() - 1);
+            self.project_list_state.select(Some(next));
+            self.update_live_preview();
+        }
+    }
+
+    /// Navigate projects list up
+    pub fn projects_prev(&mut self, step: usize) {
+        if !self.visible_items.is_empty() {
+            let i = self.project_list_state.selected().unwrap_or(0);
+            let prev = i.saturating_sub(step);
+            self.project_list_state.select(Some(prev));
+            self.update_live_preview();
+        }
+    }
+
+    /// Jump to top of projects list
+    pub fn projects_top(&mut self) {
+        if !self.visible_items.is_empty() {
+            self.project_list_state.select(Some(0));
+            self.update_live_preview();
+        }
+    }
+
+    /// Jump to bottom of projects list
+    pub fn projects_bottom(&mut self) {
+        if !self.visible_items.is_empty() {
+            self.project_list_state.select(Some(self.visible_items.len() - 1));
+            self.update_live_preview();
+        }
+    }
+
+    /// Navigate browse list down
+    pub fn browse_next(&mut self, step: usize) {
+        if !self.browse_files.is_empty() {
+            let i = self.browse_list_state.selected().unwrap_or(0);
+            let next = (i + step).min(self.browse_files.len() - 1);
+            self.browse_list_state.select(Some(next));
+            self.update_live_preview();
+        }
+    }
+
+    /// Navigate browse list up
+    pub fn browse_prev(&mut self, step: usize) {
+        if !self.browse_files.is_empty() {
+            let i = self.browse_list_state.selected().unwrap_or(0);
+            let prev = i.saturating_sub(step);
+            self.browse_list_state.select(Some(prev));
+            self.update_live_preview();
+        }
+    }
+
+    /// Jump to top of browse list
+    pub fn browse_top(&mut self) {
+        if !self.browse_files.is_empty() {
+            self.browse_list_state.select(Some(0));
+            self.update_live_preview();
+        }
+    }
+
+    /// Jump to bottom of browse list
+    pub fn browse_bottom(&mut self) {
+        if !self.browse_files.is_empty() {
+            self.browse_list_state.select(Some(self.browse_files.len() - 1));
+            self.update_live_preview();
+        }
+    }
+
+    /// Update the live preview cache for the right pane based on current active tab and selection
+    pub fn update_live_preview(&mut self) {
+        self.live_preview_content.clear();
+        self.live_preview_title.clear();
+        self.live_preview_file_path = None;
+        self.live_preview_project_commits.clear();
+        self.live_preview_scroll = 0;
+
+        match self.mode {
+            Mode::Projects => {
+                if let Some(item) = self.selected_item().cloned() {
+                    match item {
+                        ProjectViewItem::Project { name, .. } => {
+                            self.live_preview_title = format!("Project: {}", name);
+                            if let Ok(project_dir) = self.config.project_dir(&name) {
+                                if let Ok(commits) = dmcore::recent_commits(&project_dir, 10) {
+                                    self.live_preview_project_commits = commits;
+                                }
+                            }
+                        }
+                        ProjectViewItem::File { abs_path, path, .. } => {
+                            self.live_preview_title = path.clone();
+                            self.live_preview_file_path = Some(abs_path.clone());
+                            if abs_path.exists() {
+                                if abs_path.is_file() {
+                                    if let Ok(content) = fs::read_to_string(&abs_path) {
+                                        let preview_str = content.lines().take(150).collect::<Vec<_>>().join("\n");
+                                        self.live_preview_content = self.highlight_content(&preview_str, &abs_path);
+                                    }
+                                } else if abs_path.is_dir() {
+                                    self.live_preview_content = self.load_folder_content(&abs_path);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Mode::Add => {
+                if let Some(idx) = self.browse_list_state.selected() {
+                    if let Some(file) = self.browse_files.get(idx) {
+                        self.live_preview_title = file.name.clone();
+                        self.live_preview_file_path = Some(file.path.clone());
+                        if file.path.is_file() {
+                            if let Ok(content) = fs::read_to_string(&file.path) {
+                                let preview_str = content.lines().take(150).collect::<Vec<_>>().join("\n");
+                                self.live_preview_content = self.highlight_content(&preview_str, &file.path);
+                            }
+                        }
+                    }
+                }
+            }
+            Mode::Restore => {
+                if self.restore_view == RestoreView::Files {
+                    if let Some(idx) = self.restore_list_state.selected() {
+                        if let Some(file) = self.restore_files.get(idx) {
+                            self.live_preview_title = file.display_path.clone();
+                            self.live_preview_file_path = Some(file.restore_path.clone());
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

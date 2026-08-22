@@ -1,0 +1,66 @@
+##############################################
+#                                            #
+#            NoteDog Default Theme           #
+#                                            #
+##############################################
+
+active_border = "#FFCC66"         # Warm Gold
+inactive_border = "#242936"       # Dark Slate Charcoal
+sidebar_title = "#36A3D9"         # Steel Cyan
+active_sidebar_border = "#FF7733" # Coral Orange
+foreground = "#B3B1AD"           # Soft Off-White / Grey
+background = "none"              # Canvas background ("none" for transparent, or "#0F1419")
+highlight_bg = "#1F2430"         # Dark Slate fill
+highlight_fg = "#36A3D9"         # Steel Cyan
+header_1 = "#FF7733"             # Coral Orange
+header_2 = "#FFCC66"             # Warm Gold
+header_3 = "#36A3D9"             # Steel Cyan
+code_bg = "#14191F"              # Very Dark Charcoal
+encrypted_tag = "#F07178"        # Red Coral
+
+notebook_item_bg = "none"
+notebook_item_fg = "#B3B1AD"
+notebook_item_weight = "normal"
+notebook_item_selected_bg = "#1F2430"
+notebook_item_selected_fg = "#36A3D9"
+notebook_item_selected_weight = "bold"
+notebook_icon_fg = "#36A3D9"
+notebook_icon_selected_fg = "#36A3D9"
+
+section_item_bg = "none"
+section_item_fg = "#B3B1AD"
+section_item_weight = "normal"
+section_item_selected_bg = "#1F2430"
+section_item_selected_fg = "#36A3D9"
+section_item_selected_weight = "bold"
+section_icon_fg = "#36A3D9"
+section_icon_selected_fg = "#36A3D9"
+
+note_item_bg = "none"
+note_item_fg = "#B3B1AD"
+note_item_weight = "normal"
+note_item_selected_bg = "#1F2430"
+note_item_selected_fg = "#36A3D9"
+note_item_selected_weight = "bold"
+note_icon_fg = "#36A3D9"
+note_icon_selected_fg = "#36A3D9"
+
+notebook_border_active = "#FF7733"
+notebook_border_inactive = "#242936"
+notebook_title_active = "#36A3D9"
+notebook_title_inactive = "#36A3D9"
+
+section_border_active = "#FF7733"
+section_border_inactive = "#242936"
+section_title_active = "#36A3D9"
+section_title_inactive = "#36A3D9"
+
+note_border_active = "#FF7733"
+note_border_inactive = "#242936"
+note_title_active = "#36A3D9"
+note_title_inactive = "#36A3D9"
+
+preview_border_active = "#FFCC66"
+preview_border_inactive = "#242936"
+preview_title_active = "#FFCC66"
+preview_title_inactive = "#36A3D9"

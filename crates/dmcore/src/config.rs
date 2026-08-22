@@ -56,6 +56,26 @@ pub struct Config {
     /// Owner email shown in About dialog (optional)
     #[serde(default)]
     pub owner_email: Option<String>,
+
+    /// Theme name (e.g. "notedog", "nord", "catppuccin-mocha", "dracula", "gruvbox", "tokyo-night", "ayu-dark", "solarized-dark", "monokai")
+    #[serde(default = "default_theme")]
+    pub theme: String,
+
+    /// Transparent background (true = use terminal default bg)
+    #[serde(default = "default_true")]
+    pub transparent_background: bool,
+
+    /// Show bottom status and help bar
+    #[serde(default = "default_true")]
+    pub show_help_bar: bool,
+
+    /// Auto-populate theme files in ~/.config/dotmatrix/themes/
+    #[serde(default = "default_true")]
+    pub spawn_themes: bool,
+}
+
+fn default_theme() -> String {
+    "notedog".to_string()
 }
 
 fn default_true() -> bool {
@@ -84,6 +104,10 @@ impl Default for Config {
             owner_name: None,
             owner_website: None,
             owner_email: None,
+            theme: default_theme(),
+            transparent_background: true,
+            show_help_bar: true,
+            spawn_themes: true,
         }
     }
 }
@@ -179,6 +203,11 @@ impl Config {
         let config_dir = dirs::config_dir()
             .ok_or_else(|| anyhow::anyhow!("Could not determine config directory"))?;
         Ok(config_dir.join("dotmatrix"))
+    }
+
+    /// Get the themes directory path (~/.config/dotmatrix/themes)
+    pub fn themes_dir() -> anyhow::Result<PathBuf> {
+        Ok(Self::config_dir()?.join("themes"))
     }
 
     /// Get the data directory path (where backups/store lives)

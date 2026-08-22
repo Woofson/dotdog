@@ -1,0 +1,66 @@
+##############################################
+#                                            #
+#            Gruvbox Dark Theme              #
+#                                            #
+##############################################
+
+active_border = "#FABD2F"         # Bright Yellow
+inactive_border = "#504945"       # Dark 2 Slate
+sidebar_title = "#83A598"         # Bright Blue
+active_sidebar_border = "#FE8019" # Bright Orange
+foreground = "#EBDBB2"           # Light 1 Cream
+background = "none"              # Canvas background ("none" or "#282828")
+highlight_bg = "#3C3836"         # Dark 1 fill
+highlight_fg = "#FABD2F"         # Bright Yellow
+header_1 = "#FE8019"             # Bright Orange
+header_2 = "#FABD2F"             # Bright Yellow
+header_3 = "#8EC07C"             # Bright Aqua
+code_bg = "#1D2021"              # Dark 0 Hard
+encrypted_tag = "#FB4934"        # Bright Red
+
+notebook_item_bg = "none"
+notebook_item_fg = "#EBDBB2"
+notebook_item_weight = "normal"
+notebook_item_selected_bg = "#3C3836"
+notebook_item_selected_fg = "#FABD2F"
+notebook_item_selected_weight = "bold"
+notebook_icon_fg = "#83A598"
+notebook_icon_selected_fg = "#FABD2F"
+
+section_item_bg = "none"
+section_item_fg = "#EBDBB2"
+section_item_weight = "normal"
+section_item_selected_bg = "#3C3836"
+section_item_selected_fg = "#FABD2F"
+section_item_selected_weight = "bold"
+section_icon_fg = "#83A598"
+section_icon_selected_fg = "#FABD2F"
+
+note_item_bg = "none"
+note_item_fg = "#EBDBB2"
+note_item_weight = "normal"
+note_item_selected_bg = "#3C3836"
+note_item_selected_fg = "#FABD2F"
+note_item_selected_weight = "bold"
+note_icon_fg = "#83A598"
+note_icon_selected_fg = "#FABD2F"
+
+notebook_border_active = "#FE8019"
+notebook_border_inactive = "#504945"
+notebook_title_active = "#83A598"
+notebook_title_inactive = "#83A598"
+
+section_border_active = "#FE8019"
+section_border_inactive = "#504945"
+section_title_active = "#83A598"
+section_title_inactive = "#83A598"
+
+note_border_active = "#FE8019"
+note_border_inactive = "#504945"
+note_title_active = "#83A598"
+note_title_inactive = "#83A598"
+
+preview_border_active = "#FABD2F"
+preview_border_inactive = "#504945"
+preview_title_active = "#FABD2F"
+preview_title_inactive = "#83A598"
