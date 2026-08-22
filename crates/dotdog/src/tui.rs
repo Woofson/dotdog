@@ -561,7 +561,9 @@ fn run_app<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut A
                     if app.main_view_mode == MainViewMode::Explorer {
                         if let Some(idx) = app.browse_list_state.selected() {
                             if let Some(file) = app.browse_files.get(idx) {
-                                if !file.is_dir {
+                                if file.is_dir {
+                                    app.start_recursive_preview();
+                                } else {
                                     let path = file.path.clone();
                                     app.add_file_to_project(&path);
                                     app.update_live_preview();
@@ -689,8 +691,13 @@ fn run_app<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut A
                     app.acknowledge_missing_files();
                 }
 
-                // R: Recursive scan in Explorer
-                (KeyCode::Char('R'), false) => {
+                // R / Shift+R: Recursive scan in Explorer
+                (KeyCode::Char('R'), _) => {
+                    if app.main_view_mode == MainViewMode::Explorer {
+                        app.start_recursive_preview();
+                    }
+                }
+                (KeyCode::Char('r'), false) if key.modifiers.contains(KeyModifiers::SHIFT) => {
                     if app.main_view_mode == MainViewMode::Explorer {
                         app.start_recursive_preview();
                     }
@@ -706,9 +713,13 @@ fn run_app<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut A
                     }
                 }
 
-                // r: Refresh status
+                // r: Refresh status / directory
                 (KeyCode::Char('r'), false) => {
+                    if app.main_view_mode == MainViewMode::Explorer {
+                        app.refresh_browse();
+                    }
                     app.refresh_projects();
+                    app.update_live_preview();
                     app.message = Some(("Refreshed".to_string(), false));
                 }
 

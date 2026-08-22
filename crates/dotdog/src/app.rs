@@ -872,9 +872,14 @@ impl App {
             if let Some(file) = project.files.iter_mut().find(|f| f.path == file_path) {
                 file.encrypted = !file.encrypted;
                 self.manifest_dirty = true;
-                let state = if file.encrypted { "enabled" } else { "disabled" };
-                self.message = Some((format!("Encryption {} (saves on exit)", state), false));
+                let state = if file.encrypted { "enabled (🔒 Age encrypted)" } else { "disabled" };
+                self.message = Some((format!("Encryption {}", state), false));
+                let needs_prompt = file.encrypted && self.encryption_password.is_none();
                 self.refresh_projects();
+
+                if needs_prompt {
+                    self.show_password_prompt(PasswordPurpose::Backup);
+                }
             }
         }
     }
@@ -899,12 +904,17 @@ impl App {
             }
 
             self.manifest_dirty = true;
-            let state = if new_state { "enabled" } else { "disabled" };
+            let state = if new_state { "enabled (🔒 Age encrypted)" } else { "disabled" };
             self.message = Some((
-                format!("Encryption {} for {} files (saves on exit)", state, count),
+                format!("Encryption {} for {} files", state, count),
                 false,
             ));
+            let needs_prompt = new_state && self.encryption_password.is_none();
             self.refresh_projects();
+
+            if needs_prompt {
+                self.show_password_prompt(PasswordPurpose::Backup);
+            }
         }
     }
 
@@ -2578,14 +2588,10 @@ impl App {
 
     /// Start recursive preview for the selected directory
     pub fn start_recursive_preview(&mut self) {
-        if self.mode != Mode::Add {
-            return;
-        }
-
         let idx = match self.browse_list_state.selected() {
             Some(i) => i,
             None => {
-                self.message = Some(("No directory selected".to_string(), true));
+                self.message = Some(("No directory selected (highlight a folder first)".to_string(), true));
                 return;
             }
         };
@@ -2597,7 +2603,7 @@ impl App {
 
         if !file.is_dir {
             self.message = Some((
-                "Select a directory to add recursively".to_string(),
+                "Highlight a folder to scan recursively".to_string(),
                 true,
             ));
             return;
@@ -2623,6 +2629,10 @@ impl App {
         let mut preview_list_state = ListState::default();
         preview_list_state.select(Some(0));
 
+        if let Some(name) = self.active_project_name() {
+            self.target_project = Some(name);
+        }
+
         self.recursive_preview = Some(RecursivePreviewState {
             source_dir: dir,
             preview_files,
@@ -2642,13 +2652,10 @@ impl App {
             let path = entry.path();
             let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
 
-            // Skip hidden files and common ignored dirs
-            if name.starts_with('.') {
-                continue;
-            }
+            // Skip common ignored and VCS directories
             if matches!(
                 name,
-                "node_modules" | "__pycache__" | "target" | ".git"
+                ".git" | ".svn" | ".hg" | "node_modules" | "__pycache__" | "target" | ".cache" | ".DS_Store" | "Thumbs.db"
             ) {
                 continue;
             }
@@ -2831,68 +2838,61 @@ impl App {
 
     /// Open the file viewer for the currently selected item
     pub fn open_viewer(&mut self) {
-        // Get the path to view based on current mode
-        let path = match self.mode {
-            Mode::Projects => {
-                // Get path from selected item in project view
-                if let Some(i) = self.project_list_state.selected() {
-                    if i < self.visible_items.len() {
-                        match &self.visible_items[i] {
-                            ProjectViewItem::File { abs_path, .. } => abs_path.clone(),
-                            _ => return,
-                        }
-                    } else {
-                        return;
-                    }
+        // Get the path to view based on current workspace mode and focus
+        let path = if self.main_view_mode == MainViewMode::Explorer {
+            if let Some(i) = self.browse_list_state.selected() {
+                if let Some(file) = self.browse_files.get(i) {
+                    file.path.clone()
                 } else {
                     return;
                 }
+            } else {
+                return;
             }
-            Mode::Add => {
-                // Get path from browse files
-                if let Some(i) = self.browse_list_state.selected() {
-                    if i < self.browse_files.len() {
-                        self.browse_files[i].path.clone()
-                    } else {
-                        return;
-                    }
+        } else if self.main_view_mode == MainViewMode::HistoryDiff {
+            if let Some(i) = self.restore_list_state.selected() {
+                if let Some(file) = self.restore_files.get(i) {
+                    file.restore_path.clone()
                 } else {
                     return;
                 }
+            } else {
+                return;
             }
-            Mode::Restore => {
-                // Get path from restore files
-                if self.restore_view == RestoreView::Files {
-                    if let Some(i) = self.restore_list_state.selected() {
-                        if i < self.restore_files.len() {
-                            self.restore_files[i].restore_path.clone()
-                        } else {
-                            return;
-                        }
-                    } else {
-                        return;
-                    }
-                } else {
-                    return;
-                }
+        } else if let Some(file) = self.active_file() {
+            file.abs_path.clone()
+        } else if let Some(i) = self.project_list_state.selected() {
+            if let Some(ProjectViewItem::File { abs_path, .. }) = self.visible_items.get(i) {
+                abs_path.clone()
+            } else {
+                return;
             }
+        } else {
+            return;
         };
 
         // Check if path exists
         if !path.exists() {
-            self.message = Some(("File not found".to_string(), true));
+            self.message = Some(("File not found on disk".to_string(), true));
             return;
         }
+
+        let is_encrypted = self.active_project_name().and_then(|pname| {
+            self.manifest.get_project(&pname).map(|p| {
+                p.files.iter().any(|f| f.absolute_path() == path && f.encrypted)
+            })
+        }).unwrap_or(false);
+        let enc_badge = if is_encrypted { " 🔒 [Age Encrypted in Store/Git]" } else { "" };
 
         // Set viewer title
         self.viewer_title = if let Some(home) = dirs::home_dir() {
             if let Ok(rel) = path.strip_prefix(&home) {
-                format!("~/{}", rel.display())
+                format!("~/{}{}", rel.display(), enc_badge)
             } else {
-                path.display().to_string()
+                format!("{}{}", path.display(), enc_badge)
             }
         } else {
-            path.display().to_string()
+            format!("{}{}", path.display(), enc_badge)
         };
 
         // Load content based on whether it's a file or directory

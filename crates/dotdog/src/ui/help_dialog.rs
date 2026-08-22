@@ -20,7 +20,7 @@ pub fn render_help_modal(f: &mut Frame, area: Rect, scroll_y: usize, theme: &The
         .border_type(BorderType::Double)
         .border_style(Style::default().fg(theme.primary))
         .title(Span::styled(
-            " ❓ DOT MATRIX HELP & CHEAT SHEET [↑/↓/k/j Scroll] ",
+            " ❓ DOTDOG HELP & CHEAT SHEET [↑/↓/k/j Scroll] ",
             Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
         ));
 
@@ -31,9 +31,9 @@ pub fn render_help_modal(f: &mut Frame, area: Rect, scroll_y: usize, theme: &The
         Line::from(vec![Span::raw("  ↑ / ↓ or k / j    Navigate items in the currently focused pane")]),
         Line::from(vec![Span::raw("  PageUp / PageDown Fast scroll list, inspector, or diffs")]),
         Line::from(vec![Span::raw("  Home / End        Jump to the top / bottom of active list")]),
-        Line::from(vec![Span::raw("  1                 Return to Live Project & File Inspector")]),
+        Line::from(vec![Span::raw("  1 / i             Return to Live Project & File Inspector")]),
         Line::from(vec![Span::raw("  2 / +             Open embedded File Explorer to add files to active project")]),
-        Line::from(vec![Span::raw("  3 / d / H         Open Revisions, Line Diffs & Restore")]),
+        Line::from(vec![Span::raw("  3 / d             Open Revisions, Line Diffs & Restore")]),
         Line::from(""),
         Line::from(vec![Span::styled("PROJECT & FILE ACTIONS", Style::default().fg(theme.secondary).add_modifier(Modifier::BOLD))]),
         Line::from(vec![Span::raw("  Enter             Focus files / Open viewer / Enter folder in Explorer")]),
@@ -41,7 +41,7 @@ pub fn render_help_modal(f: &mut Frame, area: Rect, scroll_y: usize, theme: &The
         Line::from(vec![Span::raw("  B (Shift+B)       Instant silent backup commit")]),
         Line::from(vec![Span::raw("  Ctrl+B            Create standalone Archive snapshot (tar.gz, zip, 7z)")]),
         Line::from(vec![Span::raw("  s                 Sync project file hashes against disk")]),
-        Line::from(vec![Span::raw("  e / E             Toggle Age encryption (active file / ALL files in project)")]),
+        Line::from(vec![Span::raw("  e / E             Toggle Age encryption (prompts for passphrase if not set)")]),
         Line::from(vec![Span::raw("  t                 Cycle Track Mode: [G] Git → [B] Backup → [+] Both")]),
         Line::from(vec![Span::raw("  u / d             Untrack file from project (in Files pane)")]),
         Line::from(vec![Span::raw("  n                 Create a new Project")]),
@@ -54,8 +54,9 @@ pub fn render_help_modal(f: &mut Frame, area: Rect, scroll_y: usize, theme: &The
         Line::from(vec![Span::styled("FILE EXPLORER MODE (2 / +)", Style::default().fg(theme.secondary).add_modifier(Modifier::BOLD))]),
         Line::from(vec![Span::raw("  Enter / → / l     Enter directory or add file to active project")]),
         Line::from(vec![Span::raw("  ← / h / Backspace Go to parent directory")]),
-        Line::from(vec![Span::raw("  a                 Add selected file to active project")]),
-        Line::from(vec![Span::raw("  R                 Recursive folder scan & interactive batch add")]),
+        Line::from(vec![Span::raw("  a                 Add selected file / Scan folder recursively")]),
+        Line::from(vec![Span::raw("  R / Shift+R       Recursive folder scan & interactive batch add")]),
+        Line::from(vec![Span::raw("  r                 Refresh directory listing and projects")]),
         Line::from(vec![Span::raw("  t                 Cycle default track mode for added files")]),
         Line::from(vec![Span::raw("  u                 Untrack selected file")]),
         Line::from(vec![Span::raw("  ~                 Jump directly to home directory")]),
@@ -79,12 +80,12 @@ pub fn render_help_modal(f: &mut Frame, area: Rect, scroll_y: usize, theme: &The
         Line::from(""),
         Line::from(vec![Span::styled("GLOBAL SHORTCUTS", Style::default().fg(theme.primary).add_modifier(Modifier::BOLD))]),
         Line::from(vec![Span::raw("  ?                 Toggle this Help & Shortcut cheat sheet modal")]),
-        Line::from(vec![Span::raw("  ! / F2            Open About Dot Matrix dialog")]),
-        Line::from(vec![Span::raw("  q / Esc           Close modal / Return to Inspector / Quit Dot Matrix")]),
+        Line::from(vec![Span::raw("  ! / F2            Open About DotDog dialog")]),
+        Line::from(vec![Span::raw("  q / Esc           Close modal / Return to Inspector / Quit DotDog")]),
         Line::from(""),
         Line::from(vec![Span::styled("CONFIG & THEMES LOCATION", Style::default().fg(Color::DarkGray))]),
-        Line::from(vec![Span::raw("  Config:  ~/.config/dotmatrix/config.toml & manifest.toml")]),
-        Line::from(vec![Span::raw("  Themes:  ~/.config/dotmatrix/themes/<theme>.toml")]),
+        Line::from(vec![Span::raw("  Config:  ~/.config/dotdog/config.toml & manifest.toml")]),
+        Line::from(vec![Span::raw("  Themes:  ~/.config/dotdog/themes/<theme>.toml")]),
         Line::from(""),
         Line::from(vec![Span::styled("Press [Esc], [q], or [?] to close this help window.", Style::default().fg(theme.primary).add_modifier(Modifier::BOLD))]),
     ];

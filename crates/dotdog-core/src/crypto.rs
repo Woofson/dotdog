@@ -111,3 +111,20 @@ pub fn decrypt_bytes(encrypted: &[u8], password: &SecretString) -> Result<Vec<u8
 
     Ok(decrypted)
 }
+
+/// Check if byte slice has age encryption header
+pub fn is_age_encrypted(bytes: &[u8]) -> bool {
+    bytes.starts_with(b"age-encryption.org/v1")
+        || bytes.starts_with(b"-----BEGIN AGE ENCRYPTED FILE-----")
+}
+
+/// Check if a file on disk has age encryption header
+pub fn is_file_age_encrypted(path: &Path) -> bool {
+    if let Ok(mut file) = std::fs::File::open(path) {
+        let mut buf = [0u8; 36];
+        if let Ok(n) = file.read(&mut buf) {
+            return is_age_encrypted(&buf[..n]);
+        }
+    }
+    false
+}

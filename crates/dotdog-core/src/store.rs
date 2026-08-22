@@ -161,9 +161,16 @@ pub fn store_file_encrypted(
     let storage_path = hash_to_path(&store_dir, &hash);
 
     // Check if already stored (deduplication)
-    let was_new = if storage_path.exists() {
-        false
+    // If password is provided, ensure the stored blob is actually Age encrypted
+    let needs_write = if !storage_path.exists() {
+        true
+    } else if password.is_some() {
+        !crate::crypto::is_file_age_encrypted(&storage_path)
     } else {
+        false
+    };
+
+    let was_new = if needs_write {
         // Create parent directory
         if let Some(parent) = storage_path.parent() {
             fs::create_dir_all(parent)?;
@@ -179,6 +186,8 @@ pub fn store_file_encrypted(
             }
         }
         true
+    } else {
+        false
     };
 
     Ok(StoreResult {
@@ -276,9 +285,16 @@ pub fn store_file_to_encrypted(
     let storage_path = hash_to_path(store_dir, &hash);
 
     // Check if already stored (deduplication)
-    let was_new = if storage_path.exists() {
-        false
+    // If password is provided, ensure the stored blob is actually Age encrypted
+    let needs_write = if !storage_path.exists() {
+        true
+    } else if password.is_some() {
+        !crate::crypto::is_file_age_encrypted(&storage_path)
     } else {
+        false
+    };
+
+    let was_new = if needs_write {
         // Create parent directory
         if let Some(parent) = storage_path.parent() {
             fs::create_dir_all(parent)?;
@@ -294,6 +310,8 @@ pub fn store_file_to_encrypted(
             }
         }
         true
+    } else {
+        false
     };
 
     Ok(StoreResult {
