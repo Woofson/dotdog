@@ -122,6 +122,90 @@ fn run_app<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut A
                 continue;
             }
 
+            // 2b. Status Indicators Guide Modal Active
+            if app.show_status_modal {
+                match key.code {
+                    KeyCode::Down | KeyCode::Char('j') => {
+                        app.status_modal_scroll = app.status_modal_scroll.saturating_add(1);
+                    }
+                    KeyCode::Up | KeyCode::Char('k') => {
+                        app.status_modal_scroll = app.status_modal_scroll.saturating_sub(1);
+                    }
+                    KeyCode::PageDown => {
+                        app.status_modal_scroll = app.status_modal_scroll.saturating_add(8);
+                    }
+                    KeyCode::PageUp => {
+                        app.status_modal_scroll = app.status_modal_scroll.saturating_sub(8);
+                    }
+                    KeyCode::Home | KeyCode::Char('g') => {
+                        app.status_modal_scroll = 0;
+                    }
+                    KeyCode::End | KeyCode::Char('G') => {
+                        app.status_modal_scroll = 500;
+                    }
+                    KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('S') | KeyCode::F(3) => {
+                        app.close_status_modal();
+                    }
+                    _ => {}
+                }
+                continue;
+            }
+
+            // 2c. Activity Log & Diagnostics Modal Active
+            if app.show_log_modal {
+                match key.code {
+                    KeyCode::Tab | KeyCode::Right | KeyCode::Char('l') => {
+                        app.next_log_tab();
+                    }
+                    KeyCode::BackTab | KeyCode::Left | KeyCode::Char('h') => {
+                        app.prev_log_tab();
+                    }
+                    KeyCode::Char('1') => {
+                        app.log_tab = 0;
+                        app.log_scroll = 0;
+                    }
+                    KeyCode::Char('2') => {
+                        app.log_tab = 1;
+                        app.log_scroll = 0;
+                    }
+                    KeyCode::Char('3') => {
+                        app.log_tab = 2;
+                        app.log_scroll = 0;
+                    }
+                    KeyCode::Char('4') => {
+                        app.log_tab = 3;
+                        app.log_scroll = 0;
+                    }
+                    KeyCode::Char('5') => {
+                        app.log_tab = 4;
+                        app.log_scroll = 0;
+                    }
+                    KeyCode::Down | KeyCode::Char('j') => {
+                        app.log_scroll = app.log_scroll.saturating_add(1);
+                    }
+                    KeyCode::Up | KeyCode::Char('k') => {
+                        app.log_scroll = app.log_scroll.saturating_sub(1);
+                    }
+                    KeyCode::PageDown => {
+                        app.log_scroll = app.log_scroll.saturating_add(8);
+                    }
+                    KeyCode::PageUp => {
+                        app.log_scroll = app.log_scroll.saturating_sub(8);
+                    }
+                    KeyCode::Home | KeyCode::Char('g') => {
+                        app.log_scroll = 0;
+                    }
+                    KeyCode::End | KeyCode::Char('G') => {
+                        app.log_scroll = 1000;
+                    }
+                    KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('L') | KeyCode::F(4) => {
+                        app.close_log_modal();
+                    }
+                    _ => {}
+                }
+                continue;
+            }
+
             // 3. File Viewer Mode Active
             if app.viewer_visible && !app.restore_confirm.visible {
                 match key.code {
@@ -416,6 +500,16 @@ fn run_app<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut A
                 }
                 (KeyCode::Char('!'), _) | (KeyCode::F(2), _) => {
                     app.show_about = true;
+                }
+
+                // Activity Log, Diagnostics & To-Do Modal
+                (KeyCode::Char('L'), _) | (KeyCode::Char('l'), true) | (KeyCode::F(4), _) => {
+                    app.open_log_modal();
+                }
+
+                // Status Bar & System Indicators Guide Modal
+                (KeyCode::Char('S'), _) | (KeyCode::F(3), _) => {
+                    app.open_status_modal();
                 }
 
                 // Fullscreen Toggle

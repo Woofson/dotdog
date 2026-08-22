@@ -167,6 +167,62 @@ pub struct RestoreConfirmState {
     pub preview_mode: RestorePreviewMode, // Current view mode
 }
 
+/// Severity level for activity log entries
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LogLevel {
+    Info,
+    Success,
+    Warning,
+    Error,
+}
+
+/// Category for activity log entries
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LogCategory {
+    Backup,
+    Sync,
+    Restore,
+    Git,
+    File,
+    Project,
+    Encryption,
+    Scan,
+}
+
+/// An entry in the session activity log
+#[derive(Debug, Clone)]
+pub struct LogEntry {
+    pub timestamp: chrono::DateTime<chrono::Local>,
+    pub level: LogLevel,
+    pub category: LogCategory,
+    pub project: Option<String>,
+    pub message: String,
+    pub details: Option<String>,
+}
+
+/// A pending task or action recommended for the user to perform
+#[derive(Debug, Clone)]
+pub struct PendingTask {
+    pub project: String,
+    pub title: String,
+    pub description: String,
+    pub shortcut: &'static str,
+    pub action_name: &'static str,
+    pub category: &'static str,
+    pub files: Vec<String>,
+}
+
+/// A detailed error diagnosis with explanation and remediation instructions
+#[derive(Debug, Clone)]
+pub struct DiagnosticError {
+    pub project: String,
+    pub target: String,
+    pub status: FileStatus,
+    pub error_msg: String,
+    pub meaning: String,
+    pub fix_steps: Vec<String>,
+}
+
 /// A displayable file entry
 #[derive(Debug, Clone)]
 pub struct DisplayFile {
@@ -176,6 +232,7 @@ pub struct DisplayFile {
     pub size: Option<u64>,
     pub track_mode: TrackMode,
     pub encrypted: bool,
+    pub error: Option<String>,
 }
 
 /// A displayable project entry (name used for target_project cycling)
@@ -207,6 +264,7 @@ pub enum ProjectViewItem {
         size: Option<u64>,
         track_mode: TrackMode,
         encrypted: bool,
+        error: Option<String>,
     },
 }
 
@@ -365,6 +423,16 @@ pub struct App {
     pub active_project_idx: usize,
     pub active_file_idx: usize,
     pub file_list_state: ListState,
+
+    // Log and Diagnostics Modal State
+    pub show_log_modal: bool,
+    pub log_tab: usize,
+    pub log_scroll: usize,
+    pub activity_log: Vec<LogEntry>,
+
+    // Status Guide Modal State
+    pub show_status_modal: bool,
+    pub status_modal_scroll: usize,
 }
 
 /// File entry for browsing
@@ -464,6 +532,12 @@ impl App {
             active_project_idx: 0,
             active_file_idx: 0,
             file_list_state: ListState::default(),
+            show_log_modal: false,
+            log_tab: 0,
+            log_scroll: 0,
+            activity_log: Vec::new(),
+            show_status_modal: false,
+            status_modal_scroll: 0,
         };
 
         app.refresh_projects();
@@ -471,7 +545,341 @@ impl App {
         app.scan_backup_projects();
         app.update_live_preview();
 
+        let total_files: usize = app.projects.iter().map(|p| p.file_count).sum();
+        let total_drifted: usize = app.projects.iter().map(|p| p.summary.drifted).sum();
+        let total_errors: usize = app.projects.iter().map(|p| p.summary.errors).sum();
+
+        let startup_msg = format!(
+            "DotDog session started. Loaded {} project(s) with {} total tracked file(s).",
+            app.projects.len(),
+            total_files
+        );
+        let startup_details = if total_errors > 0 || total_drifted > 0 {
+            Some(format!("Detected {} error(s) and {} drifted file(s) across projects.", total_errors, total_drifted))
+        } else {
+            Some("All tracked projects are fully synced and clean.".to_string())
+        };
+
+        app.log_event(
+            if total_errors > 0 { LogLevel::Warning } else { LogLevel::Info },
+            LogCategory::Scan,
+            None,
+            startup_msg,
+            startup_details,
+        );
+
         Ok(app)
+    }
+
+    /// Record an event into the session activity log
+    pub fn log_event(
+        &mut self,
+        level: LogLevel,
+        category: LogCategory,
+        project: Option<String>,
+        message: impl Into<String>,
+        details: Option<String>,
+    ) {
+        let entry = LogEntry {
+            timestamp: chrono::Local::now(),
+            level,
+            category,
+            project,
+            message: message.into(),
+            details,
+        };
+        self.activity_log.push(entry);
+        if self.activity_log.len() > 300 {
+            self.activity_log.remove(0);
+        }
+    }
+
+    /// Open Activity Log & Diagnostics modal
+    pub fn open_log_modal(&mut self) {
+        self.show_log_modal = true;
+        self.log_scroll = 0;
+    }
+
+    /// Close Activity Log & Diagnostics modal
+    pub fn close_log_modal(&mut self) {
+        self.show_log_modal = false;
+        self.log_scroll = 0;
+    }
+
+    /// Open Status Guide modal
+    pub fn open_status_modal(&mut self) {
+        self.show_status_modal = true;
+        self.status_modal_scroll = 0;
+    }
+
+    /// Close Status Guide modal
+    pub fn close_status_modal(&mut self) {
+        self.show_status_modal = false;
+        self.status_modal_scroll = 0;
+    }
+
+    /// Switch to next log tab
+    pub fn next_log_tab(&mut self) {
+        self.log_tab = (self.log_tab + 1) % 5;
+        self.log_scroll = 0;
+    }
+
+    /// Switch to previous log tab
+    pub fn prev_log_tab(&mut self) {
+        if self.log_tab == 0 {
+            self.log_tab = 4;
+        } else {
+            self.log_tab -= 1;
+        }
+        self.log_scroll = 0;
+    }
+
+    /// Retrieve all pending tasks and recommendations across all tracked projects
+    pub fn get_pending_tasks(&self) -> Vec<PendingTask> {
+        let mut tasks = Vec::new();
+
+        for proj in &self.projects {
+            // 1. Read / Permission Errors
+            let err_files: Vec<String> = proj
+                .files
+                .iter()
+                .filter(|f| f.status == FileStatus::Error)
+                .map(|f| f.path.clone())
+                .collect();
+            if !err_files.is_empty() {
+                tasks.push(PendingTask {
+                    project: proj.name.clone(),
+                    title: format!("Resolve {} Read / Permission Error(s)", err_files.len()),
+                    description: format!(
+                        "DotDog could not read or hash {} file(s) on disk. Check file permissions, ownership, or disk mount.",
+                        err_files.len()
+                    ),
+                    shortcut: "[L] Diagnostics / [u] Untrack",
+                    action_name: "Fix Permissions / Untrack",
+                    category: "ERROR RESOLUTION",
+                    files: err_files,
+                });
+            }
+
+            // 2. Drifted files
+            let drifted_files: Vec<String> = proj
+                .files
+                .iter()
+                .filter(|f| f.status == FileStatus::Drifted)
+                .map(|f| f.path.clone())
+                .collect();
+            if !drifted_files.is_empty() {
+                tasks.push(PendingTask {
+                    project: proj.name.clone(),
+                    title: format!("Backup {} Drifted / Modified File(s)", drifted_files.len()),
+                    description: format!(
+                        "{} file(s) have been modified since their last backup snapshot.",
+                        drifted_files.len()
+                    ),
+                    shortcut: "[b] Backup / [s] Sync",
+                    action_name: "Backup Commit",
+                    category: "MODIFIED FILES",
+                    files: drifted_files,
+                });
+            }
+
+            // 3. New files
+            let new_files: Vec<String> = proj
+                .files
+                .iter()
+                .filter(|f| f.status == FileStatus::New)
+                .map(|f| f.path.clone())
+                .collect();
+            if !new_files.is_empty() {
+                tasks.push(PendingTask {
+                    project: proj.name.clone(),
+                    title: format!("Commit {} New Tracked File(s)", new_files.len()),
+                    description: format!(
+                        "{} new file(s) were added to the project manifest and need an initial backup commit.",
+                        new_files.len()
+                    ),
+                    shortcut: "[b] Backup",
+                    action_name: "Initial Backup",
+                    category: "NEW FILES",
+                    files: new_files,
+                });
+            }
+
+            // 4. Missing files
+            let missing_files: Vec<String> = proj
+                .files
+                .iter()
+                .filter(|f| f.status == FileStatus::Missing)
+                .map(|f| f.path.clone())
+                .collect();
+            if !missing_files.is_empty() {
+                tasks.push(PendingTask {
+                    project: proj.name.clone(),
+                    title: format!("Restore or Clean {} Missing File(s)", missing_files.len()),
+                    description: format!(
+                        "{} tracked file(s) no longer exist at their recorded locations on disk.",
+                        missing_files.len()
+                    ),
+                    shortcut: "[3] Restore / [c] Clean",
+                    action_name: "Restore / Clean",
+                    category: "MISSING FILES",
+                    files: missing_files,
+                });
+            }
+
+            // 5. Git Remote Ahead / Behind / Unreachable
+            if let Some(rs) = self.get_project_remote_status(&proj.name) {
+                if rs.has_remote && rs.ahead > 0 {
+                    tasks.push(PendingTask {
+                        project: proj.name.clone(),
+                        title: format!("Push {} Local Commit(s) to Remote Git", rs.ahead),
+                        description: format!(
+                            "Local Git repository is ahead of remote by {} commit(s).",
+                            rs.ahead
+                        ),
+                        shortcut: "[p] Git Push",
+                        action_name: "Git Push",
+                        category: "GIT REMOTE",
+                        files: vec![],
+                    });
+                }
+                if rs.has_remote && rs.behind > 0 {
+                    tasks.push(PendingTask {
+                        project: proj.name.clone(),
+                        title: format!("Pull {} Remote Commit(s)", rs.behind),
+                        description: format!(
+                            "Remote repository has {} new commit(s) ready to pull.",
+                            rs.behind
+                        ),
+                        shortcut: "[P] Git Pull",
+                        action_name: "Git Pull",
+                        category: "GIT REMOTE",
+                        files: vec![],
+                    });
+                }
+                if rs.has_remote && !rs.remote_reachable {
+                    tasks.push(PendingTask {
+                        project: proj.name.clone(),
+                        title: "Resolve Unreachable Git Remote".to_string(),
+                        description: "Remote repository server could not be reached (offline or invalid credentials).".to_string(),
+                        shortcut: "[G] Set Remote / [g] Retry",
+                        action_name: "Check Remote",
+                        category: "CONNECTIVITY",
+                        files: vec![],
+                    });
+                }
+            } else {
+                let project_dir = self.config.project_dir(&proj.name).ok();
+                let remote_url = project_dir
+                    .and_then(|d| dmcore::get_remote_url(&d).ok().flatten());
+                if remote_url.is_none() {
+                    tasks.push(PendingTask {
+                        project: proj.name.clone(),
+                        title: "Configure Remote Git URL".to_string(),
+                        description: "No Git remote is configured. Add a remote repository to enable off-site backup.".to_string(),
+                        shortcut: "[G] Set Remote",
+                        action_name: "Configure Remote",
+                        category: "CONFIGURATION",
+                        files: vec![],
+                    });
+                }
+            }
+        }
+
+        tasks
+    }
+
+    /// Retrieve all error and warning diagnoses with detailed explanations and remediation steps
+    pub fn get_diagnostic_errors(&self) -> Vec<DiagnosticError> {
+        let mut errors = Vec::new();
+
+        for proj in &self.projects {
+            // Check each file for errors or missing state
+            for file in &proj.files {
+                match file.status {
+                    FileStatus::Error => {
+                        let err_detail = file.error.as_deref().unwrap_or("Failed to open or compute SHA-256 hash");
+                        let meaning = if err_detail.contains("Permission denied") {
+                            "DotDog cannot read this file because the current user account does not have read permissions (e.g. file is owned by root with 0600 or 0700 permissions).".to_string()
+                        } else if err_detail.contains("Too many levels of symbolic links") {
+                            "This file is a circular or broken symbolic link that could not be resolved by the filesystem.".to_string()
+                        } else {
+                            "An operating system I/O error prevented DotDog from opening or hashing the file on disk.".to_string()
+                        };
+
+                        let fix_steps = vec![
+                            format!("1. Inspect permissions: ls -la '{}'", file.abs_path.display()),
+                            format!("2. Grant read access: chmod +r '{}'", file.abs_path.display()),
+                            format!("3. Or transfer ownership: sudo chown $USER '{}'", file.abs_path.display()),
+                            format!("4. If this file was added by mistake, untrack it in DotDog by selecting it and pressing [u]."),
+                        ];
+
+                        errors.push(DiagnosticError {
+                            project: proj.name.clone(),
+                            target: file.path.clone(),
+                            status: FileStatus::Error,
+                            error_msg: format!("Read / Hash Error: {}", err_detail),
+                            meaning,
+                            fix_steps,
+                        });
+                    }
+                    FileStatus::Missing => {
+                        let meaning = "This file is registered in your project manifest (~/.config/dotdog/manifest.toml), but no longer exists on disk at this path. It may have been deleted, moved, or renamed.".to_string();
+                        let fix_steps = vec![
+                            format!("1. Restore from backup revision: Press [3] or [d] to open Revisions mode, choose a commit, press [Enter], and restore."),
+                            format!("2. Clean up manifest entry: Press [c] in DotDog to remove missing files from the project."),
+                            format!("3. Untrack single missing file: Select the file in sidebar and press [u]."),
+                            format!("4. If renamed or moved: Untrack the old path with [u] and add the new location via File Explorer [2] / [+]."),
+                        ];
+
+                        errors.push(DiagnosticError {
+                            project: proj.name.clone(),
+                            target: file.path.clone(),
+                            status: FileStatus::Missing,
+                            error_msg: "File missing on disk".to_string(),
+                            meaning,
+                            fix_steps,
+                        });
+                    }
+                    _ => {}
+                }
+            }
+
+            // Check Git remote issues
+            if let Some(rs) = self.get_project_remote_status(&proj.name) {
+                if rs.has_remote && !rs.remote_reachable {
+                    errors.push(DiagnosticError {
+                        project: proj.name.clone(),
+                        target: format!("Git Remote ({})", proj.name),
+                        status: FileStatus::Error,
+                        error_msg: "Git remote is unreachable (network offline or auth failure)".to_string(),
+                        meaning: "DotDog cannot establish a connection to your Git remote server (GitHub/GitLab/SSH). Your network might be offline or your SSH keys are not loaded.".to_string(),
+                        fix_steps: vec![
+                            "1. Verify internet connectivity: ping github.com".to_string(),
+                            "2. Check SSH key authentication: ssh -T git@github.com".to_string(),
+                            "3. Ensure ssh-agent has your key: ssh-add -l (or run ssh-add ~/.ssh/id_ed25519)".to_string(),
+                            "4. Verify or update remote URL by pressing [G] in DotDog.".to_string(),
+                            "5. Press [g] to retry and refresh remote status.".to_string(),
+                        ],
+                    });
+                } else if rs.has_remote && rs.ahead > 0 && rs.behind > 0 {
+                    errors.push(DiagnosticError {
+                        project: proj.name.clone(),
+                        target: format!("Git Sync Diverged ({})", proj.name),
+                        status: FileStatus::Drifted,
+                        error_msg: format!("Local repo is {} commit(s) ahead and {} commit(s) behind remote", rs.ahead, rs.behind),
+                        meaning: "Local commits and remote commits have diverged. A Git pull and merge/rebase is required to synchronize history.".to_string(),
+                        fix_steps: vec![
+                            "1. Pull remote changes by pressing [P] in DotDog.".to_string(),
+                            format!("2. If merge conflicts occur, inspect the repo in ~/.local/share/dotdog/projects/{}/", proj.name),
+                            "3. Once resolved, push your local commits by pressing [p].".to_string(),
+                        ],
+                    });
+                }
+            }
+        }
+
+        errors
     }
 
     /// Scan the data directory for all available backup projects
@@ -627,6 +1035,7 @@ impl App {
                         size: r.current_size,
                         track_mode: r.track_mode,
                         encrypted: tracked.encrypted,
+                        error: r.error.clone(),
                     })
                     .collect();
 
@@ -649,6 +1058,7 @@ impl App {
                             size: file.size,
                             track_mode: file.track_mode,
                             encrypted: file.encrypted,
+                            error: file.error.clone(),
                         });
                     }
                 }
@@ -3459,5 +3869,117 @@ pub fn format_size(bytes: u64) -> String {
         format!("{:.1}K", bytes as f64 / KB as f64)
     } else {
         format!("{}B", bytes)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_size() {
+        assert_eq!(format_size(500), "500B");
+        assert_eq!(format_size(1024), "1.0K");
+        assert_eq!(format_size(1024 * 1024 * 5), "5.0M");
+    }
+
+    #[test]
+    fn test_log_entry_and_tabs() {
+        let mut app = App {
+            mode: Mode::Projects,
+            config: Config::default(),
+            manifest: Manifest::default(),
+            index: Index::new(),
+            projects: Vec::new(),
+            visible_items: Vec::new(),
+            project_list_state: ListState::default(),
+            expanded_projects: HashSet::new(),
+            browse_dir: PathBuf::from("/tmp"),
+            browse_files: Vec::new(),
+            browse_list_state: ListState::default(),
+            target_project: None,
+            restore_view: RestoreView::Projects,
+            backup_projects: Vec::new(),
+            backup_project_list_state: ListState::default(),
+            selected_backup_project: None,
+            commits: Vec::new(),
+            commit_list_state: ListState::default(),
+            selected_commit: None,
+            restore_files: Vec::new(),
+            restore_list_state: ListState::default(),
+            restore_selected: HashSet::new(),
+            message: None,
+            should_quit: false,
+            show_help: false,
+            show_about: false,
+            help_scroll: 0,
+            busy: false,
+            busy_message: String::new(),
+            spinner_frame: 0,
+            op_receiver: None,
+            manifest_dirty: false,
+            index_dirty: false,
+            creating_project: false,
+            project_input: String::new(),
+            confirm_delete: false,
+            delete_target: None,
+            setting_remote: false,
+            remote_input: String::new(),
+            entering_commit_msg: false,
+            commit_msg_input: String::new(),
+            recursive_preview: None,
+            default_track_mode: TrackMode::Both,
+            password_prompt_visible: false,
+            password_input: String::new(),
+            password_purpose: PasswordPurpose::default(),
+            encryption_password: None,
+            project_remote_status: HashMap::new(),
+            viewer_visible: false,
+            viewer_content: Vec::new(),
+            viewer_scroll: 0,
+            viewer_title: String::new(),
+            viewer_line_numbers: true,
+            syntax_set: SyntaxSet::load_defaults_newlines(),
+            theme_set: ThemeSet::load_defaults(),
+            restore_confirm: RestoreConfirmState::default(),
+            acknowledged_missing: HashSet::new(),
+            theme: Theme::default(),
+            is_fullscreen: false,
+            live_preview_content: Vec::new(),
+            live_preview_title: String::new(),
+            live_preview_file_path: None,
+            live_preview_project_commits: Vec::new(),
+            live_preview_scroll: 0,
+            focused_pane: Pane::Projects,
+            main_view_mode: MainViewMode::Inspector,
+            active_project_idx: 0,
+            active_file_idx: 0,
+            file_list_state: ListState::default(),
+            show_log_modal: false,
+            log_tab: 0,
+            log_scroll: 0,
+            activity_log: Vec::new(),
+            show_status_modal: false,
+            status_modal_scroll: 0,
+        };
+
+        app.log_event(
+            LogLevel::Success,
+            LogCategory::Backup,
+            Some("nvim-config".to_string()),
+            "Created backup revision",
+            None,
+        );
+
+        assert_eq!(app.activity_log.len(), 1);
+        assert_eq!(app.activity_log[0].level, LogLevel::Success);
+        assert_eq!(app.activity_log[0].message, "Created backup revision");
+
+        // Test tab switching
+        assert_eq!(app.log_tab, 0);
+        app.next_log_tab();
+        assert_eq!(app.log_tab, 1);
+        app.prev_log_tab();
+        assert_eq!(app.log_tab, 0);
     }
 }

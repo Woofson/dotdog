@@ -330,6 +330,13 @@ pub struct Theme {
     pub icon_style_selected: Style,
 }
 
+impl Default for Theme {
+    fn default() -> Self {
+        let config = Config::default();
+        Theme::load_for_config(&config)
+    }
+}
+
 #[allow(dead_code)]
 impl Theme {
     pub fn load_for_config(config: &Config) -> Self {

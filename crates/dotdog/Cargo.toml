@@ -1,6 +1,6 @@
 [package]
 name = "dotdog"
-version = "3.0.1"
+version = "3.0.2"
 edition = "2021"
 authors = ["Bolt J Woofson <https://github.com/Woofson>"]
 description = "DotDog 🐶 - Modern dotfile compositor with git versioning & DotDog TUI"

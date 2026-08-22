@@ -1,9 +1,42 @@
 # Changelog
 
-All notable changes to dotmatrix will be documented in this file.
+All notable changes to DotDog will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.0.2] - 2026-08-22
+
+### Added
+- **Status Indicators & Diagnostics Guide Modal (`S` / `F3`)**:
+  - Comprehensive guide describing all status glyphs (`! N Err`, `✗ N Missing`, `⚠ N Drifted`, `+ N New`, `✓ Synced`).
+  - Clear explanations of what each status means (e.g. `! 5 Err` indicating unreadable files due to OS permission restrictions or broken links).
+  - Explanations of workspace modes (`NORMAL`, `EXPLORE`, `REVISION`), track badges (`[G]`, `[B]`, `[+]`), Age encryption (`🔒`), and Git remote states.
+- **Activity Log, Diagnostics & To-Do Modal (`L` / `F4` / `Ctrl+L`)**:
+  - 5-tab interface: `[1] OVERVIEW`, `[2] ACTIVITY LOG`, `[3] TO-DO LIST`, `[4] ERRORS & FIXES`, `[5] STATUS GUIDE`.
+  - Chronological session activity audit log tracking backups, syncs, restores, file additions, and Git operations.
+  - Actionable To-Do queue of uncommitted/drifted files and pending Git sync actions with shortcut pills.
+  - Root-cause diagnostics with plain-English error explanations and concrete terminal remediation commands (`chmod`, `chown`, `ssh -T`).
+- **Status Bar & Keybinding Updates**:
+  - Added direct `[L] Log` and `[S] Status` shortcut pills to bottom status bar.
+  - Updated help cheat sheet modal (`?`) with new modal shortcuts.
+
+## [3.0.1] - 2026-08-22
+
+### Added
+- Recursive directory scanning in File Explorer (`R` / `Shift+R` and `a` on directories).
+- Immediate Age encryption passphrase prompt when toggling encryption on (`e` / `E`).
+- Age header verification in storage layer.
+
+## [3.0.0] - 2026-08-22
+
+### Major Release - DotDog Redesign
+- Renamed project from Dot Matrix to DotDog (companion to NoteDog).
+- Unified single binary (`dotdog` and `dmx` alias) for NoteDog TUI and headless CLI.
+- Persistent 2-level NoteDog sidebar layout with dynamic workspace modes.
+- 17+ embedded starter themes with transparent terminal background support.
+- Dynamic project icons system with regex pattern matching.
+- AUR packages for `dotdog-git` and transitional `dotmatrix-git`.
 
 ## [2.1.0] - 2026-08-22
 

@@ -79,6 +79,8 @@ pub fn render_help_modal(f: &mut Frame, area: Rect, scroll_y: usize, theme: &The
         Line::from(vec![Span::raw("  g / G             Jump to top / bottom of viewer content")]),
         Line::from(""),
         Line::from(vec![Span::styled("GLOBAL SHORTCUTS", Style::default().fg(theme.primary).add_modifier(Modifier::BOLD))]),
+        Line::from(vec![Span::raw("  L / Shift+L / F4  Open Activity Log, Diagnostics & To-Do Modal")]),
+        Line::from(vec![Span::raw("  S / Shift+S / F3  Open Status Bar & System Indicators Guide Modal")]),
         Line::from(vec![Span::raw("  ?                 Toggle this Help & Shortcut cheat sheet modal")]),
         Line::from(vec![Span::raw("  ! / F2            Open About DotDog dialog")]),
         Line::from(vec![Span::raw("  q / Esc           Close modal / Return to Inspector / Quit DotDog")]),

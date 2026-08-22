@@ -27,6 +27,9 @@ pub struct ScanResult {
 
     /// Track mode
     pub track_mode: crate::project::TrackMode,
+
+    /// Detailed error reason (if status is Missing or Error)
+    pub error: Option<String>,
 }
 
 /// Status of a tracked file
@@ -108,6 +111,7 @@ pub fn scan_file(file: &TrackedFile, index: &Index) -> ScanResult {
             current_hash: None,
             current_size: None,
             track_mode: file.track,
+            error: Some("File does not exist on disk at path".to_string()),
         };
     }
 
@@ -116,13 +120,14 @@ pub fn scan_file(file: &TrackedFile, index: &Index) -> ScanResult {
             let size = fs::metadata(&abs_path).map(|m| m.len()).ok();
             (Some(h), size)
         }
-        Err(_) => {
+        Err(e) => {
             return ScanResult {
                 path: file.path.clone(),
                 status: FileStatus::Error,
                 current_hash: None,
                 current_size: None,
                 track_mode: file.track,
+                error: Some(format!("{}", e)),
             };
         }
     };
@@ -139,6 +144,7 @@ pub fn scan_file(file: &TrackedFile, index: &Index) -> ScanResult {
         current_hash,
         current_size,
         track_mode: file.track,
+        error: None,
     }
 }
 
@@ -184,5 +190,59 @@ impl ProjectSummary {
 
     pub fn needs_attention(&self) -> bool {
         !self.is_clean()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::project::TrackedFile;
+
+    #[test]
+    fn test_file_status_symbols() {
+        assert_eq!(FileStatus::Synced.symbol(), "✓");
+        assert_eq!(FileStatus::Drifted.symbol(), "⚠");
+        assert_eq!(FileStatus::New.symbol(), "+");
+        assert_eq!(FileStatus::Missing.symbol(), "✗");
+        assert_eq!(FileStatus::Error.symbol(), "!");
+    }
+
+    #[test]
+    fn test_scan_missing_file() {
+        let index = Index::new();
+        let file = TrackedFile::new("/nonexistent/path/for/test_file.txt");
+        let result = scan_file(&file, &index);
+
+        assert_eq!(result.status, FileStatus::Missing);
+        assert!(result.error.is_some());
+    }
+
+    #[test]
+    fn test_project_summary_counts() {
+        let results = vec![
+            ScanResult {
+                path: "f1".to_string(),
+                status: FileStatus::Synced,
+                current_hash: None,
+                current_size: None,
+                track_mode: crate::project::TrackMode::Both,
+                error: None,
+            },
+            ScanResult {
+                path: "f2".to_string(),
+                status: FileStatus::Error,
+                current_hash: None,
+                current_size: None,
+                track_mode: crate::project::TrackMode::Both,
+                error: Some("Permission denied".to_string()),
+            },
+        ];
+
+        let summary = ProjectSummary::from_results(&results);
+        assert_eq!(summary.total, 2);
+        assert_eq!(summary.synced, 1);
+        assert_eq!(summary.errors, 1);
+        assert!(!summary.is_clean());
+        assert!(summary.needs_attention());
     }
 }

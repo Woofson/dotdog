@@ -8,7 +8,9 @@ pub mod explorer_view;
 pub mod help_dialog;
 pub mod history_view;
 pub mod inspector_view;
+pub mod log_dialog;
 pub mod sidebar;
+pub mod status_dialog;
 pub mod viewer_view;
 
 use crate::app::{App, MainViewMode};
@@ -98,6 +100,16 @@ pub fn render_ui(f: &mut Frame, app: &mut App) {
     // Help Modal
     if app.show_help {
         help_dialog::render_help_modal(f, size, app.help_scroll as usize, &theme);
+    }
+
+    // Status Guide Modal
+    if app.show_status_modal {
+        status_dialog::render_status_guide_modal(f, size, app.status_modal_scroll as usize, &theme);
+    }
+
+    // Activity Log & Diagnostics Modal
+    if app.show_log_modal {
+        log_dialog::render_log_modal(f, size, app, &theme);
     }
 
     // About Modal
@@ -256,17 +268,21 @@ fn render_status_bar(f: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     line_spans.push(Span::raw(" "));
     line_spans.extend(vec![
         Span::styled(" [Tab] ", Style::default().fg(theme.primary).add_modifier(Modifier::BOLD)),
-        Span::styled("Pane  ", theme.fg_style()),
+        Span::styled("Pane ", theme.fg_style()),
         Span::styled(" [+] ", Style::default().fg(theme.secondary).add_modifier(Modifier::BOLD)),
-        Span::styled("Add  ", theme.fg_style()),
+        Span::styled("Add ", theme.fg_style()),
         Span::styled(" [b] ", Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
-        Span::styled("Backup  ", theme.fg_style()),
+        Span::styled("Backup ", theme.fg_style()),
         Span::styled(" [d] ", Style::default().fg(theme.secondary).add_modifier(Modifier::BOLD)),
-        Span::styled("Diffs  ", theme.fg_style()),
+        Span::styled("Diffs ", theme.fg_style()),
         Span::styled(" [s] ", Style::default().fg(theme.primary).add_modifier(Modifier::BOLD)),
-        Span::styled("Sync  ", theme.fg_style()),
+        Span::styled("Sync ", theme.fg_style()),
         Span::styled(" [e] ", Style::default().fg(theme.encrypted_tag).add_modifier(Modifier::BOLD)),
-        Span::styled("Encrypt  ", theme.fg_style()),
+        Span::styled("Encrypt ", theme.fg_style()),
+        Span::styled(" [L] ", Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+        Span::styled("Log ", theme.fg_style()),
+        Span::styled(" [S] ", Style::default().fg(theme.primary).add_modifier(Modifier::BOLD)),
+        Span::styled("Status ", theme.fg_style()),
         Span::styled(" [?] ", Style::default().fg(theme.secondary).add_modifier(Modifier::BOLD)),
         Span::styled("Help", theme.fg_style()),
     ]);
