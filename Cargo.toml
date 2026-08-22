@@ -1,19 +1,17 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/dmcore",
-    "crates/dmcli",
-    "crates/dmtui",
+    "crates/dotdog-core",
+    "crates/dotdog",
 ]
-# dmgui lives in crates/dmgui but is not a workspace member (CLI+TUI focus).
-# Build later: cargo build --manifest-path crates/dmgui/Cargo.toml --release
-exclude = ["crates/dmgui"]
 
 [workspace.package]
-version = "2.1.0"
+version = "3.0.0"
 edition = "2021"
-authors = ["Woofson <https://github.com/Woofson>"]
+authors = ["Bolt J Woofson <https://github.com/Woofson>"]
 license = "MIT"
+repository = "https://github.com/Woofson/dotdog"
+homepage = "https://github.com/Woofson/dotdog"
 
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -34,7 +32,3 @@ crossterm = "0.28"
 ignore = "0.4"
 syntect = "5.2"
 age = "0.11"
-
-# Legacy v1 package - kept for reference during migration
-# The original src/ directory contains the v1 codebase
-# Migration path: extract logic into dmcore, frontends into dmcli/dmtui (+ optional dmgui)

@@ -1,0 +1,64 @@
+##############################################
+#            Ayu Mirage Theme                #
+##############################################
+
+active_border = "#FFCC66"         # Accent Yellow
+inactive_border = "#272D38"       # Line
+sidebar_title = "#5CCFE6"         # Cyan
+active_sidebar_border = "#FF3333" # Red
+foreground = "#CCCAC2"           # Fg
+background = "none"              # Bg ("#212733")
+highlight_bg = "#242B38"         # Selection
+highlight_fg = "#FFCC66"         # Yellow
+header_1 = "#F28779"             # Coral
+header_2 = "#FFCC66"             # Yellow
+header_3 = "#5CCFE6"             # Cyan
+code_bg = "#191E2A"              # Block
+encrypted_tag = "#F28779"        # Coral
+
+notebook_item_bg = "none"
+notebook_item_fg = "#CCCAC2"
+notebook_item_weight = "normal"
+notebook_item_selected_bg = "#242B38"
+notebook_item_selected_fg = "#FFCC66"
+notebook_item_selected_weight = "bold"
+notebook_icon_fg = "#5CCFE6"
+notebook_icon_selected_fg = "#FFCC66"
+
+section_item_bg = "none"
+section_item_fg = "#CCCAC2"
+section_item_weight = "normal"
+section_item_selected_bg = "#242B38"
+section_item_selected_fg = "#FFCC66"
+section_item_selected_weight = "bold"
+section_icon_fg = "#5CCFE6"
+section_icon_selected_fg = "#FFCC66"
+
+note_item_bg = "none"
+note_item_fg = "#CCCAC2"
+note_item_weight = "normal"
+note_item_selected_bg = "#242B38"
+note_item_selected_fg = "#FFCC66"
+note_item_selected_weight = "bold"
+note_icon_fg = "#5CCFE6"
+note_icon_selected_fg = "#FFCC66"
+
+notebook_border_active = "#FFCC66"
+notebook_border_inactive = "#272D38"
+notebook_title_active = "#5CCFE6"
+notebook_title_inactive = "#5CCFE6"
+
+section_border_active = "#FFCC66"
+section_border_inactive = "#272D38"
+section_title_active = "#5CCFE6"
+section_title_inactive = "#5CCFE6"
+
+note_border_active = "#FFCC66"
+note_border_inactive = "#272D38"
+note_title_active = "#5CCFE6"
+note_title_inactive = "#5CCFE6"
+
+preview_border_active = "#FFCC66"
+preview_border_inactive = "#272D38"
+preview_title_active = "#FFCC66"
+preview_title_inactive = "#5CCFE6"

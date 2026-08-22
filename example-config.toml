@@ -1,9 +1,9 @@
-# Dot Matrix 2.1.0 - Example Configuration File
+# DotDog 3.0.0 - Example Configuration File
 # Copy this file to your config directory:
-#   Linux/macOS: ~/.config/dotmatrix/config.toml
-#   Windows: %APPDATA%\dotmatrix\config.toml
+#   Linux/macOS: ~/.config/dotdog/config.toml
+#   Windows: %APPDATA%\dotdog\config.toml
 #
-# Or run 'dmxcli init' to generate a default config.
+# Or run 'dotdog init' to generate a default config.
 #
 # Note: Projects and tracked files are defined in manifest.toml,
 # not in this config file. See example-manifest.toml for project setup.
@@ -14,10 +14,89 @@
 
 # Custom data directory (optional)
 # If not set, uses system default:
-#   Linux: ~/.local/share/dotmatrix
-#   Windows: %LOCALAPPDATA%\dotmatrix
-#   macOS: ~/Library/Application Support/dotmatrix
-# data_dir = "~/my-dotmatrix-data"
+#   Linux: ~/.local/share/dotdog
+#   Windows: %LOCALAPPDATA%\dotdog
+#   macOS: ~/Library/Application Support/dotdog
+# data_dir = "~/my-dotdog-data"
+
+# ═══════════════════════════════════════════════════════════════
+# THEME & APPEARANCE (NoteDog Theme Engine)
+# ═══════════════════════════════════════════════════════════════
+
+# Theme name or path. Built-in presets:
+#   "notedog", "dotdog", "nord", "dracula", "gruvbox", "tokyo-night",
+#   "catppuccin-mocha", "catppuccin-latte", "catppuccin-macchiato", "catppuccin-frappe",
+#   "ayu-dark", "ayu-mirage", "solarized-dark", "monokai", "rose-pine", "everforest", "kanagawa"
+theme = "notedog"
+
+# Transparent terminal background (true = use terminal default bg)
+transparent_background = true
+
+# Show bottom status bar and shortcut chips
+show_help_bar = true
+
+# Automatically populate starter themes into ~/.config/dotdog/themes/
+spawn_themes = true
+
+# ═══════════════════════════════════════════════════════════════
+# PROJECT & FILE ICONS (NoteDog Matching System)
+# ═══════════════════════════════════════════════════════════════
+
+[icons]
+project = "📦 "
+file = "📄 "
+folder = "📁 "
+encrypted = "🔒 "
+
+# Regex pattern rules to assign custom emoji/nerd icons to projects
+[[icons.rules]]
+pattern = "(?i).*(nvim|neovim|vim).*"
+icon = "⚡ "
+
+[[icons.rules]]
+pattern = "(?i).*(zsh|bash|fish|shell|sh|shrc).*"
+icon = "🐚 "
+
+[[icons.rules]]
+pattern = "(?i).*(ssh|vault|secret|gpg|auth|key|password).*"
+icon = "🔑 "
+
+[[icons.rules]]
+pattern = "(?i).*(git|github|gitlab).*"
+icon = "🐙 "
+
+[[icons.rules]]
+pattern = "(?i).*(tmux|wezterm|alacritty|kitty|foot|term|ghostty).*"
+icon = "🖥️ "
+
+[[icons.rules]]
+pattern = "(?i).*(hypr|sway|i3|bspwm|waybar|wm|desktop|polybar).*"
+icon = "🪟 "
+
+[[icons.rules]]
+pattern = "(?i).*(docker|container|podman|compose).*"
+icon = "🐳 "
+
+[[icons.rules]]
+pattern = "(?i).*(rust|cargo).*"
+icon = "🦀 "
+
+[[icons.rules]]
+pattern = "(?i).*(python|py).*"
+icon = "🐍 "
+
+[[icons.rules]]
+pattern = "(?i).*(dot|dotfile|dots|config|workstation|system).*"
+icon = "⚙️ "
+
+# ═══════════════════════════════════════════════════════════════
+# VISUAL LAYOUT SIZING
+# ═══════════════════════════════════════════════════════════════
+
+[layout]
+sidebar_width = "34%"
+projects_height = "45%"
+files_height = "55%"
 
 # ═══════════════════════════════════════════════════════════════
 # BACKUP SETTINGS
@@ -37,20 +116,10 @@ default_archive_format = "targz"
 # Enable git versioning for project stores (recommended)
 git_enabled = true
 
-# ═══════════════════════════════════════════════════════════════
-# INTERFACE SETTINGS
-# ═══════════════════════════════════════════════════════════════
-
-# Preferred interface when running without arguments
-#   "auto" = Platform default (GUI on Windows, TUI on Linux/macOS)
-#   "gui" = Always use GUI
-#   "tui" = Always use TUI
-preferred_interface = "auto"
-
-# Optional owner details shown in TUI About dialog (`!`)
-# owner_name = "BJ Woofson"
-# owner_website = "www.arf.ac"
-# owner_email = "dm@boop.no"
+# Optional owner details shown in TUI About dialog (`!`/`F2`)
+# owner_name = "Bolt J Woofson"
+# owner_website = "https://github.com/Woofson/dotdog"
+# owner_email = "bolt@boop.no"
 
 # ═══════════════════════════════════════════════════════════════
 # GLOBAL EXCLUDE PATTERNS
@@ -70,25 +139,23 @@ exclude = [
 ]
 
 # ═══════════════════════════════════════════════════════════════
-# CLI ENCRYPTION FOR SCRIPTS AND CRON
+# UNIFIED BINARY CLI USAGE & SCRIPTS
 # ═══════════════════════════════════════════════════════════════
 #
-# When using encrypted files with CLI commands (backup/restore),
-# provide the password using one of these methods:
+# Running 'dotdog' (or 'dmx') without arguments opens the interactive NoteDog TUI.
+# Running 'dotdog <subcommand>' runs headless CLI operations:
 #
 # 1. Password file (recommended for cron):
-#    dmxcli backup --password-file ~/.dotmatrix-pass
-#    Make sure to: chmod 600 ~/.dotmatrix-pass
+#    dotdog backup --password-file ~/.dotdog-pass
+#    Make sure to: chmod 600 ~/.dotdog-pass
 #
 # 2. Stdin (good for scripts):
-#    echo "mypassword" | dmxcli backup --password-stdin
-#    cat ~/.dotmatrix-pass | dmxcli restore --password-stdin
+#    echo "mypassword" | dotdog backup --password-stdin
+#    cat ~/.dotdog-pass | dotdog restore nvim-config --password-stdin
 #
 # 3. Environment variable (fallback):
-#    export DOTMATRIX_PASSWORD="mypassword"
-#    dmxcli backup
-#
-# Priority: stdin > password-file > environment variable
+#    export DOTDOG_PASSWORD="mypassword"
+#    dotdog backup
 #
 # Example cron job (daily backup at 2am):
-#   0 2 * * * /usr/bin/dmxcli backup --password-file ~/.dotmatrix-pass -m "Scheduled backup"
+#   0 2 * * * /usr/bin/dotdog backup --password-file ~/.dotdog-pass -m "Scheduled backup"

@@ -1,8 +1,6 @@
 # Build artifacts
 /target/
 Cargo.lock
-crates/dmgui/target/
-crates/dmgui/Cargo.lock
 
 # Editor/IDE
 .vscode/
@@ -30,7 +28,5 @@ agent-transcripts/
 *.tmp
 
 # AUR and target
-/target/
 /aur/
-/debian/
 ToDo.txt

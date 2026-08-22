@@ -1,0 +1,64 @@
+##############################################
+#            Rosé Pine Theme                 #
+##############################################
+
+active_border = "#EBBCBA"         # Rose
+inactive_border = "#26233A"       # Highlight Med
+sidebar_title = "#9CCFD8"         # Foam
+active_sidebar_border = "#F6C177" # Gold
+foreground = "#E0DEF4"           # Text
+background = "none"              # Base ("#191724")
+highlight_bg = "#2A283E"         # Highlight High
+highlight_fg = "#EBBCBA"         # Rose
+header_1 = "#EB6F92"             # Love
+header_2 = "#F6C177"             # Gold
+header_3 = "#9CCFD8"             # Foam
+code_bg = "#1F1D2E"              # Surface
+encrypted_tag = "#EB6F92"        # Love
+
+notebook_item_bg = "none"
+notebook_item_fg = "#E0DEF4"
+notebook_item_weight = "normal"
+notebook_item_selected_bg = "#2A283E"
+notebook_item_selected_fg = "#EBBCBA"
+notebook_item_selected_weight = "bold"
+notebook_icon_fg = "#9CCFD8"
+notebook_icon_selected_fg = "#EBBCBA"
+
+section_item_bg = "none"
+section_item_fg = "#E0DEF4"
+section_item_weight = "normal"
+section_item_selected_bg = "#2A283E"
+section_item_selected_fg = "#EBBCBA"
+section_item_selected_weight = "bold"
+section_icon_fg = "#9CCFD8"
+section_icon_selected_fg = "#EBBCBA"
+
+note_item_bg = "none"
+note_item_fg = "#E0DEF4"
+note_item_weight = "normal"
+note_item_selected_bg = "#2A283E"
+note_item_selected_fg = "#EBBCBA"
+note_item_selected_weight = "bold"
+note_icon_fg = "#9CCFD8"
+note_icon_selected_fg = "#EBBCBA"
+
+notebook_border_active = "#EBBCBA"
+notebook_border_inactive = "#26233A"
+notebook_title_active = "#9CCFD8"
+notebook_title_inactive = "#9CCFD8"
+
+section_border_active = "#EBBCBA"
+section_border_inactive = "#26233A"
+section_title_active = "#9CCFD8"
+section_title_inactive = "#9CCFD8"
+
+note_border_active = "#EBBCBA"
+note_border_inactive = "#26233A"
+note_title_active = "#9CCFD8"
+note_title_inactive = "#9CCFD8"
+
+preview_border_active = "#EBBCBA"
+preview_border_inactive = "#26233A"
+preview_title_active = "#EBBCBA"
+preview_title_inactive = "#9CCFD8"

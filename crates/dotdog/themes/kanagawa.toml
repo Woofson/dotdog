@@ -1,0 +1,64 @@
+##############################################
+#            Kanagawa Theme                  #
+##############################################
+
+active_border = "#98BB6C"         # Spring Green
+inactive_border = "#2A2A37"       # SumiInk3
+sidebar_title = "#7E9CD8"         # Crystal Blue
+active_sidebar_border = "#E6C384" # Carp Yellow
+foreground = "#DCD7BA"           # Fuji White
+background = "none"              # SumiInk1 ("#1F1F28")
+highlight_bg = "#2D4F67"         # WaveBlue2
+highlight_fg = "#98BB6C"         # Spring Green
+header_1 = "#E46876"             # Autumn Red
+header_2 = "#E6C384"             # Carp Yellow
+header_3 = "#7E9CD8"             # Crystal Blue
+code_bg = "#16161D"              # SumiInk0
+encrypted_tag = "#E46876"        # Autumn Red
+
+notebook_item_bg = "none"
+notebook_item_fg = "#DCD7BA"
+notebook_item_weight = "normal"
+notebook_item_selected_bg = "#2D4F67"
+notebook_item_selected_fg = "#98BB6C"
+notebook_item_selected_weight = "bold"
+notebook_icon_fg = "#7E9CD8"
+notebook_icon_selected_fg = "#98BB6C"
+
+section_item_bg = "none"
+section_item_fg = "#DCD7BA"
+section_item_weight = "normal"
+section_item_selected_bg = "#2D4F67"
+section_item_selected_fg = "#98BB6C"
+section_item_selected_weight = "bold"
+section_icon_fg = "#7E9CD8"
+section_icon_selected_fg = "#98BB6C"
+
+note_item_bg = "none"
+note_item_fg = "#DCD7BA"
+note_item_weight = "normal"
+note_item_selected_bg = "#2D4F67"
+note_item_selected_fg = "#98BB6C"
+note_item_selected_weight = "bold"
+note_icon_fg = "#7E9CD8"
+note_icon_selected_fg = "#98BB6C"
+
+notebook_border_active = "#98BB6C"
+notebook_border_inactive = "#2A2A37"
+notebook_title_active = "#7E9CD8"
+notebook_title_inactive = "#7E9CD8"
+
+section_border_active = "#98BB6C"
+section_border_inactive = "#2A2A37"
+section_title_active = "#7E9CD8"
+section_title_inactive = "#7E9CD8"
+
+note_border_active = "#98BB6C"
+note_border_inactive = "#2A2A37"
+note_title_active = "#7E9CD8"
+note_title_inactive = "#7E9CD8"
+
+preview_border_active = "#98BB6C"
+preview_border_inactive = "#2A2A37"
+preview_title_active = "#98BB6C"
+preview_title_inactive = "#7E9CD8"

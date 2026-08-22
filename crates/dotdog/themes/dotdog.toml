@@ -1,0 +1,66 @@
+##############################################
+#                                            #
+#           Dot Matrix Cyber Theme           #
+#                                            #
+##############################################
+
+active_border = "#00FF9C"         # Neon Matrix Green
+inactive_border = "#1A2621"       # Deep Matrix Pine
+sidebar_title = "#00E5FF"         # Electric Cyan
+active_sidebar_border = "#FFB300" # Cyber Amber
+foreground = "#C5D1C9"           # Soft Terminal Green-Gray
+background = "none"              # Transparent or "#0A0F0D"
+highlight_bg = "#122B20"         # Dark Emerald
+highlight_fg = "#00FF9C"         # Neon Matrix Green
+header_1 = "#00FF9C"             # Neon Green
+header_2 = "#00E5FF"             # Electric Cyan
+header_3 = "#FFB300"             # Cyber Amber
+code_bg = "#0B1410"              # Deep Terminal
+encrypted_tag = "#FF3366"        # Cyber Red
+
+notebook_item_bg = "none"
+notebook_item_fg = "#C5D1C9"
+notebook_item_weight = "normal"
+notebook_item_selected_bg = "#122B20"
+notebook_item_selected_fg = "#00FF9C"
+notebook_item_selected_weight = "bold"
+notebook_icon_fg = "#00E5FF"
+notebook_icon_selected_fg = "#00FF9C"
+
+section_item_bg = "none"
+section_item_fg = "#C5D1C9"
+section_item_weight = "normal"
+section_item_selected_bg = "#122B20"
+section_item_selected_fg = "#00FF9C"
+section_item_selected_weight = "bold"
+section_icon_fg = "#00E5FF"
+section_icon_selected_fg = "#00FF9C"
+
+note_item_bg = "none"
+note_item_fg = "#C5D1C9"
+note_item_weight = "normal"
+note_item_selected_bg = "#122B20"
+note_item_selected_fg = "#00FF9C"
+note_item_selected_weight = "bold"
+note_icon_fg = "#00E5FF"
+note_icon_selected_fg = "#00FF9C"
+
+notebook_border_active = "#00FF9C"
+notebook_border_inactive = "#1A2621"
+notebook_title_active = "#00E5FF"
+notebook_title_inactive = "#00E5FF"
+
+section_border_active = "#00FF9C"
+section_border_inactive = "#1A2621"
+section_title_active = "#00E5FF"
+section_title_inactive = "#00E5FF"
+
+note_border_active = "#00FF9C"
+note_border_inactive = "#1A2621"
+note_title_active = "#00E5FF"
+note_title_inactive = "#00E5FF"
+
+preview_border_active = "#00FF9C"
+preview_border_inactive = "#1A2621"
+preview_title_active = "#00FF9C"
+preview_title_inactive = "#00E5FF"

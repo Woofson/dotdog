@@ -1,0 +1,30 @@
+[package]
+name = "dotdog"
+version = "3.0.0"
+edition = "2021"
+authors = ["Bolt J Woofson <https://github.com/Woofson>"]
+description = "DotDog 🐶 - Modern dotfile compositor with git versioning & NoteDog TUI"
+license = "MIT"
+
+[[bin]]
+name = "dotdog"
+path = "src/main.rs"
+
+[[bin]]
+name = "dmx"
+path = "src/bin/dmx.rs"
+
+[dependencies]
+dotdog-core = { path = "../dotdog-core" }
+clap = { workspace = true }
+ratatui = "0.29"
+crossterm = "0.28"
+anyhow = "1.0"
+dirs = "5.0"
+chrono = { version = "0.4", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = { workspace = true }
+age = { workspace = true }
+syntect = "5.2"
+regex = "1.10"
